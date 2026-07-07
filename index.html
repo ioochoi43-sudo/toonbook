@@ -788,6 +788,45 @@
   .detail-stars { color: var(--accent); font-size: 20px; letter-spacing: 2px; font-weight: 600; }
   .detail-thumb { width: 100%; max-width: 140px; border-radius: 8px; border: 1px solid var(--line); }
 
+  /* COVER UPLOAD */
+  .cover-upload { display: flex; align-items: center; gap: 12px; }
+  .cover-preview-wrap { position: relative; width: 72px; height: 96px; flex-shrink: 0; display: none; }
+  .cover-preview-wrap.show { display: block; }
+  .cover-preview {
+    width: 72px; height: 96px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    display: block;
+  }
+  .cover-remove {
+    position: absolute; top: -7px; right: -7px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cover-pick-btn {
+    flex: 1;
+    padding: 14px 12px;
+    background: var(--bg-elev);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+  }
+  .cover-pick-btn:active { background: var(--bg-soft); }
+
   /* NOTES LIST in detail */
   .notes-section {
     margin-top: 18px;
@@ -2020,6 +2059,20 @@
           </button>
         </div>
 
+        <div class="form-group">
+          <label class="form-label">표지 사진 <span style="font-weight: 400; color: var(--ink-mute);">— 선택</span></label>
+          <div class="cover-upload">
+            <div class="cover-preview-wrap" id="coverPreviewWrap">
+              <img class="cover-preview" id="coverPreview" alt="표지 미리보기">
+              <button type="button" class="cover-remove" onclick="removeCover()" aria-label="표지 삭제">×</button>
+            </div>
+            <label class="cover-pick-btn" id="coverPickBtn">
+              📷 사진 선택 / 촬영
+              <input type="file" accept="image/*" onchange="handleCoverUpload(event)" style="display: none;">
+            </label>
+          </div>
+        </div>
+
         <div class="form-group form-section" id="section-youtube">
           <label class="form-label">링크</label>
           <input type="url" class="form-input" id="fLink" placeholder="보러 가기 / 구매처 링크 (선택)">
@@ -2495,7 +2548,7 @@ let state = {
   selectedStatus: 'watching',
   selectedRating: 0,
   selectedOtt: null,
-  ytThumb: null,
+  coverThumb: null,
   lastBackupAt: null,
   changesSinceBackup: 0,
   bannerDismissedAt: null
@@ -3330,6 +3383,62 @@ function selectType(type) {
   document.getElementById('creatorLabel').textContent = isBook ? '작가' : '작가 (글/그림)';
 }
 
+// ============ COVER IMAGE ============
+// 사진을 캔버스로 축소·압축해서 localStorage에 부담 없게 저장
+function handleCoverUpload(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('이미지 파일을 선택해주세요'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const MAX = 480; // 긴 변 기준 최대 픽셀
+        let w = img.width, h = img.height;
+        if (Math.max(w, h) > MAX) {
+          const ratio = MAX / Math.max(w, h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        state.coverThumb = canvas.toDataURL('image/jpeg', 0.82);
+        updateCoverPreview();
+        showToast('표지가 추가됐어요');
+      } catch (err) {
+        showToast('이미지를 처리할 수 없어요');
+      }
+    };
+    img.onerror = () => showToast('이미지를 읽을 수 없어요. 다른 사진을 시도해보세요');
+    img.src = e.target.result;
+  };
+  reader.onerror = () => showToast('파일을 읽을 수 없어요');
+  reader.readAsDataURL(file);
+}
+
+function removeCover() {
+  state.coverThumb = null;
+  updateCoverPreview();
+}
+
+function updateCoverPreview() {
+  const wrap = document.getElementById('coverPreviewWrap');
+  const img = document.getElementById('coverPreview');
+  const btn = document.getElementById('coverPickBtn');
+  if (state.coverThumb) {
+    img.src = state.coverThumb;
+    wrap.classList.add('show');
+    btn.firstChild.textContent = '📷 사진 변경';
+  } else {
+    img.removeAttribute('src');
+    wrap.classList.remove('show');
+    btn.firstChild.textContent = '📷 사진 선택 / 촬영';
+  }
+}
+
 document.getElementById('statusPicker').addEventListener('click', (e) => {
   const opt = e.target.closest('.status-option');
   if (!opt) return;
@@ -3383,7 +3492,8 @@ function resetForm() {
   state.selectedStatus = 'watching';
   state.selectedOtt = null;
   state.selectedCountry = null;
-  state.ytThumb = null;
+  state.coverThumb = null;
+  updateCoverPreview();
   selectType('webtoon');
   document.querySelectorAll('#statusPicker .status-option').forEach(o => o.classList.toggle('active', o.dataset.status === 'watching'));
   updateStars();
@@ -3410,7 +3520,8 @@ function fillForm(item) {
   state.selectedStatus = item.status || 'watching';
   state.selectedOtt = item.ott || null;
   state.selectedCountry = item.country || null;
-  state.ytThumb = item.thumb || null;
+  state.coverThumb = item.thumb || null;
+  updateCoverPreview();
   selectType(state.selectedType);
   document.querySelectorAll('#statusPicker .status-option').forEach(o => o.classList.toggle('active', o.dataset.status === state.selectedStatus));
   updateStars();
@@ -3437,7 +3548,7 @@ function saveContent(e) {
     ott: state.selectedType === 'webtoon' ? state.selectedOtt : null,
     country: state.selectedCountry,
     link: document.getElementById('fLink').value.trim(),
-    thumb: existing ? (existing.thumb || '') : '',
+    thumb: state.coverThumb || '',
     totalEp: parseInt(document.getElementById('fTotalEp').value) || 0,
     currentEp: parseInt(document.getElementById('fCurrentEp').value) || 0,
     startDate: document.getElementById('fStartDate').value,
