@@ -827,6 +827,85 @@
   }
   .cover-pick-btn:active { background: var(--bg-soft); }
 
+  /* META SEARCH */
+  .meta-search-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 11px 12px;
+    background: var(--accent-soft);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: var(--accent);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .meta-search-btn:active { opacity: 0.8; }
+  .meta-search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .meta-search-row .form-input { flex: 1; }
+  .meta-search-go {
+    padding: 0 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .meta-result {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    background: var(--bg-elev);
+  }
+  .meta-result:active { background: var(--bg-soft); }
+  .meta-result img {
+    width: 48px; height: 66px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    flex-shrink: 0;
+  }
+  .meta-result-thumb-empty {
+    width: 48px; height: 66px;
+    border-radius: 6px;
+    background: var(--bg-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .meta-result-info { flex: 1; min-width: 0; }
+  .meta-result-title { font-size: 13.5px; font-weight: 600; color: var(--ink); margin-bottom: 3px; line-height: 1.35; }
+  .meta-result-sub { font-size: 11.5px; color: var(--ink-dim); line-height: 1.4; }
+  .meta-result-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-top: 4px;
+  }
+  .meta-hint {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .meta-hint a { color: var(--accent); font-weight: 600; }
+
   /* NOTE PHOTOS */
   .note-photos-grid {
     display: grid;
@@ -2046,6 +2125,16 @@
     </div>
 
     <div style="margin-top: 24px;">
+      <h3 style="font-size: 13px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.04em; margin-bottom: 10px;">만화책 검색 연동</h3>
+      <div style="font-size: 12px; color: var(--ink-dim); line-height: 1.6; margin-bottom: 10px;">만화책 정보 검색에는 <strong>카카오 책 검색 API</strong>를 사용해요. <a href="https://developers.kakao.com" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 600;">developers.kakao.com</a>에서 무료로 앱을 만들고 <strong>REST API 키</strong>를 발급받아 붙여넣으면 됩니다. 키는 이 브라우저에만 저장돼요. (웹툰 검색은 키 없이 바로 돼요)</div>
+      <div style="display: flex; gap: 8px;">
+        <input type="password" class="form-input" id="kakaoKeyInput" placeholder="카카오 REST API 키" style="flex: 1;">
+        <button class="btn btn-primary" onclick="saveKakaoKey()" style="flex-shrink: 0; padding: 12px 18px;">저장</button>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-mute); margin-top: 6px;" id="kakaoKeyStatus"></div>
+    </div>
+
+    <div style="margin-top: 24px;">
       <h3 style="font-size: 13px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.04em; margin-bottom: 10px;">템플릿 관리</h3>
       <button class="btn" onclick="openTemplateManager()" style="width: 100%; margin-bottom: 8px;">노트 템플릿 관리</button>
       <button class="btn" onclick="openOttManagerFromSettings()" style="width: 100%; margin-bottom: 8px;">웹툰 플랫폼 관리</button>
@@ -2112,6 +2201,7 @@
         <div class="form-group">
           <label class="form-label">제목</label>
           <input type="text" class="form-input" id="fTitle" required placeholder="제목을 입력하세요">
+          <button type="button" class="meta-search-btn" onclick="openMetaSearch()">🔍 검색으로 자동 입력 (제목·작가·표지)</button>
         </div>
 
         <div class="form-group">
@@ -2580,6 +2670,23 @@
     <div class="btn-row" style="margin-top: 0;">
       <button class="btn" onclick="closeConfirm()">취소</button>
       <button class="btn btn-danger" id="confirmBtn">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- META SEARCH MODAL -->
+<div class="modal" id="metaSearchModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="metaSearchTitle">웹툰 검색</div>
+      <button class="modal-close" onclick="closeMetaSearch()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="meta-search-row">
+        <input type="text" class="form-input" id="metaSearchInput" placeholder="제목으로 검색" onkeydown="if(event.key==='Enter'){event.preventDefault();runMetaSearch();}">
+        <button type="button" class="meta-search-go" onclick="runMetaSearch()">검색</button>
+      </div>
+      <div id="metaSearchResults"></div>
     </div>
   </div>
 </div>
@@ -3128,6 +3235,7 @@ function renderAll() {
 }
 
 function renderStats() {
+  updateKakaoKeyStatus();
   document.getElementById('statTotal').textContent = `${state.items.length}개`;
   document.getElementById('statDone').textContent = `${state.items.filter(i => i.status === 'done').length}개`;
   const rated = state.items.filter(i => i.rating > 0);
@@ -3517,6 +3625,171 @@ function fileToResizedDataURL(file, maxPx) {
     reader.onerror = () => reject(new Error('read'));
     reader.readAsDataURL(file);
   });
+}
+
+// ============ META SEARCH (웹툰/만화책 정보 자동 입력) ============
+const WEBTOON_API = 'https://korea-webtoon-api-cc7dda2f0d77.herokuapp.com'; // 비공식 오픈 API (네이버/카카오웹툰/카카오페이지)
+const KAKAO_KEY_STORAGE = 'toonArchive_kakaoKey';
+let metaResults = [];
+
+function getKakaoKey() {
+  try { return localStorage.getItem(KAKAO_KEY_STORAGE) || ''; } catch(e) { return ''; }
+}
+
+function saveKakaoKey() {
+  const v = document.getElementById('kakaoKeyInput').value.trim();
+  try {
+    if (v) { localStorage.setItem(KAKAO_KEY_STORAGE, v); showToast('키가 저장됐어요'); }
+    else { localStorage.removeItem(KAKAO_KEY_STORAGE); showToast('키가 삭제됐어요'); }
+  } catch(e) { showToast('저장 실패'); }
+  updateKakaoKeyStatus();
+}
+
+function updateKakaoKeyStatus() {
+  const el = document.getElementById('kakaoKeyStatus');
+  if (el) el.textContent = getKakaoKey() ? '✓ 키 저장됨 — 만화책 검색 사용 가능' : '키 없음 — 만화책 검색을 쓰려면 키를 저장하세요';
+}
+
+function openMetaSearch() {
+  const isBook = state.selectedType === 'book';
+  document.getElementById('metaSearchTitle').textContent = isBook ? '만화책 검색' : '웹툰 검색';
+  document.getElementById('metaSearchInput').value = document.getElementById('fTitle').value.trim();
+  const results = document.getElementById('metaSearchResults');
+  if (isBook && !getKakaoKey()) {
+    results.innerHTML = `<div class="meta-hint">만화책 검색에는 카카오 책 검색 API 키가 필요해요.<br>설정 → <strong>만화책 검색 연동</strong>에서 무료 키를 저장하면 바로 쓸 수 있어요.</div>`;
+  } else {
+    results.innerHTML = `<div class="meta-hint">${isBook ? '제목이나 작가로 검색하면 표지·작가·출판사가 자동으로 채워져요.' : '네이버웹툰 · 카카오웹툰 · 카카오페이지에서 검색해요. 표지·작가·플랫폼·링크가 자동으로 채워져요.'}</div>`;
+  }
+  metaResults = [];
+  document.getElementById('metaSearchModal').classList.add('active');
+  setTimeout(() => document.getElementById('metaSearchInput').focus(), 150);
+}
+
+function closeMetaSearch() {
+  document.getElementById('metaSearchModal').classList.remove('active');
+}
+
+async function runMetaSearch() {
+  const q = document.getElementById('metaSearchInput').value.trim();
+  if (!q) { showToast('검색어를 입력하세요'); return; }
+  const isBook = state.selectedType === 'book';
+  const results = document.getElementById('metaSearchResults');
+  results.innerHTML = `<div class="meta-hint">검색 중... ${isBook ? '' : '(무료 서버라 첫 검색은 몇십 초 걸릴 수 있어요)'}</div>`;
+  try {
+    if (isBook) {
+      const key = getKakaoKey();
+      if (!key) { results.innerHTML = `<div class="meta-hint">설정에서 카카오 REST API 키를 먼저 저장해주세요.</div>`; return; }
+      const res = await fetch(`https://dapi.kakao.com/v3/search/book?query=${encodeURIComponent(q)}&size=20`, {
+        headers: { Authorization: `KakaoAK ${key}` }
+      });
+      if (res.status === 401) { results.innerHTML = `<div class="meta-hint">키가 올바르지 않아요. 설정에서 REST API 키를 다시 확인해주세요.</div>`; return; }
+      if (!res.ok) throw new Error('http ' + res.status);
+      const data = await res.json();
+      metaResults = (data.documents || []).map(d => ({
+        title: d.title || '',
+        creator: (d.authors || []).join(', '),
+        publisher: d.publisher || '',
+        thumb: d.thumbnail || '',
+        link: d.url || '',
+        sub: [ (d.authors || []).join(', '), d.publisher, (d.datetime || '').slice(0, 4) ].filter(Boolean).join(' · '),
+        badge: d.publisher || ''
+      }));
+    } else {
+      const res = await fetch(`${WEBTOON_API}/webtoons?keyword=${encodeURIComponent(q)}&perPage=20&page=1`);
+      if (!res.ok) throw new Error('http ' + res.status);
+      const data = await res.json();
+      const list = data.webtoons || data.data || (Array.isArray(data) ? data : []);
+      const providerName = { NAVER: '네이버웹툰', KAKAO: '카카오웹툰', KAKAO_PAGE: '카카오페이지' };
+      metaResults = list.map(wt => ({
+        title: wt.title || '',
+        creator: Array.isArray(wt.authors) ? wt.authors.join(', ') : (wt.author || ''),
+        provider: providerName[wt.provider] || wt.provider || '',
+        thumb: Array.isArray(wt.thumbnail) ? (wt.thumbnail[0] || '') : (wt.thumbnail || ''),
+        link: wt.url || '',
+        sub: [ Array.isArray(wt.authors) ? wt.authors.join(', ') : wt.author, wt.isEnd ? '완결' : '연재중' ].filter(Boolean).join(' · '),
+        badge: providerName[wt.provider] || wt.provider || ''
+      }));
+    }
+    if (metaResults.length === 0) {
+      results.innerHTML = `<div class="meta-hint">검색 결과가 없어요. 다른 검색어로 시도해보세요.</div>`;
+      return;
+    }
+    results.innerHTML = metaResults.map((r, i) => `
+      <div class="meta-result" onclick="pickMetaResult(${i})">
+        ${r.thumb ? `<img src="${escapeHTML(r.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<div class="meta-result-thumb-empty">${isBook ? '📖' : '📱'}</div>`}
+        <div class="meta-result-info">
+          <div class="meta-result-title">${escapeHTML(r.title)}</div>
+          <div class="meta-result-sub">${escapeHTML(r.sub)}</div>
+          ${r.badge ? `<span class="meta-result-badge">${escapeHTML(r.badge)}</span>` : ''}
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    console.error(e);
+    results.innerHTML = `<div class="meta-hint">검색에 실패했어요. 네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.${isBook ? '' : '<br>웹툰 검색 서버(비공식·무료)는 가끔 느리거나 응답하지 않을 수 있어요.'}</div>`;
+  }
+}
+
+// 외부 이미지 URL을 최대한 base64로 변환해 저장 (CORS 불가 시 URL 그대로 사용)
+async function urlToStoredThumb(url) {
+  if (!url) return '';
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) throw new Error('http');
+    const blob = await res.blob();
+    const dataURL = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+    // 캔버스로 축소·압축
+    return await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const MAX = 480;
+          let w = img.width, h = img.height;
+          if (Math.max(w, h) > MAX) { const ratio = MAX / Math.max(w, h); w = Math.round(w * ratio); h = Math.round(h * ratio); }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        } catch(e) { resolve(url); }
+      };
+      img.onerror = () => resolve(url);
+      img.src = dataURL;
+    });
+  } catch (e) {
+    return url; // CORS 막히면 URL 핫링크로 저장 (표시에는 문제 없음)
+  }
+}
+
+async function pickMetaResult(idx) {
+  const r = metaResults[idx];
+  if (!r) return;
+  document.getElementById('fTitle').value = r.title;
+  if (r.creator) document.getElementById('fCreator').value = r.creator;
+  if (r.link) document.getElementById('fLink').value = r.link;
+  if (state.selectedType === 'book' && r.publisher) {
+    document.getElementById('fPlatform').value = r.publisher;
+  }
+  if (state.selectedType === 'webtoon' && r.provider) {
+    const plat = state.ottPlatforms.find(p => p.name === r.provider);
+    if (plat) {
+      state.selectedOtt = plat.id;
+      updateOttSelectButton();
+    }
+  }
+  closeMetaSearch();
+  showToast('정보가 채워졌어요');
+  if (r.thumb) {
+    state.coverThumb = r.thumb; // 우선 URL로 즉시 미리보기
+    updateCoverPreview();
+    urlToStoredThumb(r.thumb).then(stored => {
+      state.coverThumb = stored;
+      updateCoverPreview();
+    });
+  }
 }
 
 // ============ COVER IMAGE ============
