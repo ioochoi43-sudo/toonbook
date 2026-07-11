@@ -729,7 +729,7 @@
   .confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--ink); letter-spacing: -0.02em; }
   .confirm-desc { font-size: 13px; color: var(--ink-dim); margin-bottom: 20px; line-height: 1.5; }
 
-  .episodes-section { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .episodes-section { margin: 16px 0 28px; padding-top: 16px; border-top: 1px dashed var(--line); }
   .episodes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
@@ -2026,6 +2026,12 @@
       <div class="timeline-hero-label">NOW READING</div>
       <div class="timeline-hero-num"><span id="watchingCount">0</span> <small>개 읽는 중</small></div>
       <div class="timeline-hero-desc" id="watchingDesc">아직 읽고 있는 작품이 없어요</div>
+  </div>
+  <div class="seg-picker" id="timelineSortPicker" style="margin-bottom: 14px;">
+    <button type="button" class="seg-option active" data-tsort="updated">최근 수정</button>
+    <button type="button" class="seg-option" data-tsort="created">등록순</button>
+    <button type="button" class="seg-option" data-tsort="progress">진행률</button>
+    <button type="button" class="seg-option" data-tsort="title">제목순</button>
     </div>
 
     <div id="timelineList"></div>
@@ -2039,6 +2045,7 @@
       <button class="pill" data-status="watching">읽는중 <span class="pill-count" id="sc-watching">0</span></button>
       <button class="pill" data-status="wishlist">위시 <span class="pill-count" id="sc-wishlist">0</span></button>
       <button class="pill" data-status="done">완료 <span class="pill-count" id="sc-done">0</span></button>
+      <button class="pill" data-status="dropped">중단 <span class="pill-count" id="sc-dropped">0</span></button>
     </div>
     <div class="controls-row">
       <div class="filter-row" id="typeFilter">
@@ -2146,6 +2153,7 @@
       <div style="font-size: 12px; color: var(--ink-dim); line-height: 1.6; background: var(--bg-soft); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;">
         💡 데이터는 <strong>이 기기에만</strong> 저장돼요. 다른 기기와는 자동으로 합쳐지지 않고, 오래 안 쓰면 사라질 수 있어요. 가끔 <strong>JSON 백업</strong>을 받아두면 안전하게 보관·복원할 수 있어요.
       </div>
+      <button class="btn" onclick="openCollageModal()" style="width: 100%; margin-bottom: 8px;">🖼 작품 목록 이미지로 저장</button>
       <button class="btn" onclick="exportExcel()" style="width: 100%; margin-bottom: 8px;">📊 엑셀 파일로 내보내기 (.xlsx)</button>
       <button class="btn btn-primary" onclick="exportData()" style="width: 100%; margin-bottom: 8px;">💾 JSON 백업 다운로드</button>
       <label class="btn" style="width: 100%; margin-bottom: 8px; display: block; text-align: center;">
@@ -2674,6 +2682,46 @@
   </div>
 </div>
 
+<!-- COLLAGE EXPORT MODAL -->
+<div class="modal" id="collageModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">작품 목록 이미지 저장</div>
+      <button class="modal-close" onclick="closeCollageModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">유형</label>
+        <div class="seg-picker" id="collageTypePicker">
+          <button type="button" class="seg-option active" data-ctype="all">전체</button>
+          <button type="button" class="seg-option" data-ctype="webtoon">웹툰</button>
+          <button type="button" class="seg-option" data-ctype="book">만화책</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">상태 <span style="font-weight: 400; color: var(--ink-mute);">— 여러 개 선택 가능</span></label>
+        <div class="filter-pills" id="collageStatusPicker" style="margin-bottom: 0;">
+          <button type="button" class="pill" data-cstatus="watching">읽는중</button>
+          <button type="button" class="pill active" data-cstatus="done">완료</button>
+          <button type="button" class="pill" data-cstatus="dropped">중단</button>
+          <button type="button" class="pill" data-cstatus="wishlist">위시</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">분류 기준</label>
+        <div class="seg-picker" id="collageGroupPicker">
+          <button type="button" class="seg-option active" data-cgroup="none">없음</button>
+          <button type="button" class="seg-option" data-cgroup="platform">플랫폼별</button>
+          <button type="button" class="seg-option" data-cgroup="country">국가별</button>
+          <button type="button" class="seg-option" data-cgroup="status">상태별</button>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-mute); margin-bottom: 14px;" id="collageCountHint"></div>
+      <button class="btn btn-primary" onclick="generateCollage()" style="width: 100%;">이미지 생성 후 저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- META SEARCH MODAL -->
 <div class="modal" id="metaSearchModal">
   <div class="modal-content">
@@ -2746,6 +2794,7 @@ let state = {
   typeFilter: 'all',
   statusFilter: 'all',
   copyDefaultProgress: true,
+  timelineSort: 'updated',
   lastSavedAt: null,
   templateFilter: 'all',
   sortBy: 'updated',
@@ -2822,6 +2871,7 @@ function load() {
         state.changesSinceBackup = data.settings.changesSinceBackup || 0;
         state.bannerDismissedAt = data.settings.bannerDismissedAt || null;
         if (data.settings.copyDefaultProgress !== undefined) state.copyDefaultProgress = data.settings.copyDefaultProgress;
+        state.timelineSort = data.settings.timelineSort || 'updated';
       }
     } else {
       state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
@@ -2853,7 +2903,8 @@ function save(isDataChange) {
         lastBackupAt: state.lastBackupAt,
         changesSinceBackup: state.changesSinceBackup,
         bannerDismissedAt: state.bannerDismissedAt,
-        copyDefaultProgress: state.copyDefaultProgress
+        copyDefaultProgress: state.copyDefaultProgress,
+        timelineSort: state.timelineSort
       },
       savedAt: now
     }));
@@ -3200,14 +3251,20 @@ function updateCounts() {
   sc('sc-all', state.items.length);
   sc('sc-watching', state.items.filter(i => i.status === 'watching').length);
   sc('sc-wishlist', state.items.filter(i => i.status === 'wishlist').length);
-  sc('sc-done', state.items.filter(i => i.status === 'done' || i.status === 'dropped').length);
+  sc('sc-done', state.items.filter(i => i.status === 'done').length);
+  sc('sc-dropped', state.items.filter(i => i.status === 'dropped').length);
 }
 
 function renderTimeline() {
-  const watching = state.items.filter(i => i.status === 'watching').sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0));
+  const watching = state.items.filter(i => i.status === 'watching');
+  const s = state.timelineSort || 'updated';
+  if (s === 'created') watching.sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+  else if (s === 'progress') watching.sort((a,b) => ((getProgress(b) ?? -1) - (getProgress(a) ?? -1)) || ((b.updatedAt||0)-(a.updatedAt||0)));
+  else if (s === 'title') watching.sort((a,b) => (a.title||'').localeCompare(b.title||'', 'ko'));
+  else watching.sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0));
   document.getElementById('watchingCount').textContent = watching.length;
   const desc = document.getElementById('watchingDesc');
-  desc.textContent = watching.length === 0 ? '아직 보고 있는 게 없어요' : [...new Set(watching.map(w => typeName(w.type)))].join(' · ');
+  desc.textContent = watching.length === 0 ? '아직 읽고 있는 작품이 없어요' : [...new Set(watching.map(w => typeName(w.type)))].join(' · ');
   const list = document.getElementById('timelineList');
   list.innerHTML = watching.length === 0
     ? emptyHTML('읽고 있는 작품 없음', '+ 버튼으로 새 기록을 추가하세요')
@@ -3218,13 +3275,7 @@ function renderAll() {
   let items = [...state.items];
   if (state.typeFilter !== 'all') items = items.filter(i => i.type === state.typeFilter);
   if (state.countryFilter !== 'all') items = items.filter(i => i.country === state.countryFilter);
-  if (state.statusFilter !== 'all') {
-    if (state.statusFilter === 'done') {
-      items = items.filter(i => i.status === 'done' || i.status === 'dropped');
-    } else {
-      items = items.filter(i => i.status === state.statusFilter);
-    }
-  }
+  if (state.statusFilter !== 'all') items = items.filter(i => i.status === state.statusFilter);
   items = sortItems(items);
   const emptyMsg = state.statusFilter === 'all'
     ? ['아직 기록이 없어요', '+ 버튼으로 첫 기록을 만들어보세요']
@@ -3557,6 +3608,19 @@ document.getElementById('copyDefaultPicker').addEventListener('click', (e) => {
   document.querySelectorAll('#copyDefaultPicker .seg-option').forEach(o => o.classList.toggle('active', o === opt));
   save();
 });
+
+document.getElementById('timelineSortPicker').addEventListener('click', (e) => {
+  const opt = e.target.closest('.seg-option');
+  if (!opt) return;
+  state.timelineSort = opt.dataset.tsort;
+  syncTimelineSortPicker();
+  save();
+  renderTimeline();
+});
+
+function syncTimelineSortPicker() {
+  document.querySelectorAll('#timelineSortPicker .seg-option').forEach(o => o.classList.toggle('active', o.dataset.tsort === (state.timelineSort || 'updated')));
+}
 
 function syncCopyDefaultPicker() {
   const picker = document.getElementById('copyDefaultPicker');
@@ -4066,7 +4130,7 @@ function openDetail(id) {
     ${episodesHTML}
 
     ${item.link ? `<div class="detail-section"><div class="detail-label">링크</div><a href="${escapeHTML(item.link)}" target="_blank" rel="noopener" class="card-link" style="margin-top: 4px;">🔗 보러 가기</a></div>` : ''}
-    ${item.memo ? `<div class="detail-section"><div class="detail-label">한줄 메모</div><div class="detail-value" style="white-space: pre-wrap;">${escapeHTML(item.memo)}</div></div>` : ''}
+    ${item.memo ? `<div class="detail-section" style="margin-top: 22px;"><div class="detail-label" style="margin-bottom: 7px;">한줄 메모</div><div class="detail-value" style="white-space: pre-wrap; line-height: 1.75;">${escapeHTML(item.memo)}</div></div>` : ''}
 
     ${(() => {
       const hasProgress = item.totalEp > 0 || item.currentEp > 0;
@@ -4413,6 +4477,141 @@ function confirmDeleteNote() {
 
 // ============ NOTE EXPORT ============
 // 노트 하나의 표시용 HTML (헤더+본문). header=true면 콘텐츠 제목 헤더 포함
+// ============ COLLAGE EXPORT (작품 목록 이미지) ============
+let collageType = 'all';
+let collageStatuses = new Set(['done']);
+let collageGroup = 'none';
+
+function openCollageModal() {
+  document.querySelectorAll('#collageTypePicker .seg-option').forEach(o => o.classList.toggle('active', o.dataset.ctype === collageType));
+  document.querySelectorAll('#collageStatusPicker .pill').forEach(p => p.classList.toggle('active', collageStatuses.has(p.dataset.cstatus)));
+  document.querySelectorAll('#collageGroupPicker .seg-option').forEach(o => o.classList.toggle('active', o.dataset.cgroup === collageGroup));
+  updateCollageCount();
+  document.getElementById('collageModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCollageModal() {
+  document.getElementById('collageModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function getCollageItems() {
+  return state.items.filter(i =>
+    (collageType === 'all' || i.type === collageType) &&
+    collageStatuses.has(i.status)
+  );
+}
+
+function updateCollageCount() {
+  const n = getCollageItems().length;
+  document.getElementById('collageCountHint').textContent = n > 0 ? `${n}개 작품이 이미지에 담겨요` : '조건에 맞는 작품이 없어요';
+}
+
+document.getElementById('collageTypePicker').addEventListener('click', (e) => {
+  const opt = e.target.closest('.seg-option');
+  if (!opt) return;
+  collageType = opt.dataset.ctype;
+  document.querySelectorAll('#collageTypePicker .seg-option').forEach(o => o.classList.toggle('active', o === opt));
+  updateCollageCount();
+});
+
+document.getElementById('collageStatusPicker').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  const s = pill.dataset.cstatus;
+  if (collageStatuses.has(s)) collageStatuses.delete(s); else collageStatuses.add(s);
+  pill.classList.toggle('active', collageStatuses.has(s));
+  updateCollageCount();
+});
+
+document.getElementById('collageGroupPicker').addEventListener('click', (e) => {
+  const opt = e.target.closest('.seg-option');
+  if (!opt) return;
+  collageGroup = opt.dataset.cgroup;
+  document.querySelectorAll('#collageGroupPicker .seg-option').forEach(o => o.classList.toggle('active', o === opt));
+});
+
+function collageGroupKey(item) {
+  if (collageGroup === 'platform') {
+    if (item.type === 'webtoon') {
+      const ott = item.ott ? getOttById(item.ott) : null;
+      return ott ? ott.name : '플랫폼 미지정';
+    }
+    return item.platform || '출판사 미지정';
+  }
+  if (collageGroup === 'country') {
+    const c = item.country ? getCountryById(item.country) : null;
+    return c ? c.name : '국가 미지정';
+  }
+  if (collageGroup === 'status') return statusName(item.status);
+  return '';
+}
+
+function collageCardHTML(item) {
+  const stars = item.rating > 0 ? `<div style="font-size: 10px; color: #2f8a4c; letter-spacing: 1px;">${starString(item.rating)}</div>` : '';
+  const prog = progressText(item);
+  const sub = [item.creator, prog].filter(Boolean).join(' · ');
+  const thumb = item.thumb
+    ? `<img src="${escapeHTML(item.thumb)}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">`
+    : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #edf3ea;">${item.type === 'book' ? '📖' : '📱'}</div>`;
+  return `<div style="width: 118px;">
+    <div style="width: 118px; height: 158px; border-radius: 8px; overflow: hidden; border: 1px solid #dde7d8; background: #edf3ea;">${thumb}</div>
+    <div style="font-size: 11.5px; font-weight: 700; color: #1a1c19; margin-top: 6px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHTML(item.title)}</div>
+    ${sub ? `<div style="font-size: 9.5px; color: #596155; margin-top: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHTML(sub)}</div>` : ''}
+    ${stars}
+  </div>`;
+}
+
+async function generateCollage() {
+  const items = getCollageItems();
+  if (items.length === 0) { showToast('조건에 맞는 작품이 없어요'); return; }
+  if (items.length > 120) { showToast('작품이 너무 많아요 (최대 120개). 조건을 좁혀주세요'); return; }
+  showToast('이미지 생성 중...');
+
+  // 그룹핑
+  let groupsHTML = '';
+  const sortFn = (a, b) => (a.title||'').localeCompare(b.title||'', 'ko');
+  if (collageGroup === 'none') {
+    groupsHTML = `<div style="display: flex; flex-wrap: wrap; gap: 14px;">${items.sort(sortFn).map(collageCardHTML).join('')}</div>`;
+  } else {
+    const groups = {};
+    items.forEach(i => {
+      const k = collageGroupKey(i);
+      (groups[k] = groups[k] || []).push(i);
+    });
+    const keys = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+    groupsHTML = keys.map(k => `
+      <div style="margin-bottom: 26px;">
+        <div style="font-size: 14px; font-weight: 700; color: #1a1c19; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #2f8a4c; display: inline-block;">${escapeHTML(k)} <span style="color: #94a08e; font-weight: 600; font-size: 12px;">${groups[k].length}</span></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px;">${groups[k].sort(sortFn).map(collageCardHTML).join('')}</div>
+      </div>`).join('');
+  }
+
+  const statusLabel = ['watching','done','dropped','wishlist'].filter(s => collageStatuses.has(s)).map(statusName).join(' · ');
+  const typeLabel = collageType === 'all' ? '웹툰 · 만화책' : typeName(collageType);
+  const headerHTML = `
+    <div style="border-bottom: 2px solid #1a1c19; padding-bottom: 14px; margin-bottom: 22px;">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #94a08e; font-weight: 600; margin-bottom: 4px;">MY COLLECTION</div>
+      <div style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #1a1c19;">${typeLabel} 기록</div>
+      <div style="font-size: 12px; color: #596155; margin-top: 4px;">${statusLabel} · ${items.length}개 · ${fmtToday()}</div>
+    </div>`;
+  const footerHTML = `<div style="margin-top: 26px; padding-top: 12px; border-top: 1px solid #dde7d8; font-size: 10px; color: #94a08e; letter-spacing: 0.06em; text-align: right;">TOON &amp; BOOK ARCHIVE</div>`;
+
+  try {
+    const canvas = await htmlToCanvas(headerHTML + groupsHTML + footerHTML);
+    const link = document.createElement('a');
+    link.download = `toon-collection-${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    closeCollageModal();
+    showToast('이미지가 저장되었습니다');
+  } catch (e) {
+    console.error(e);
+    showToast('이미지 생성 실패');
+  }
+}
+
 function buildNoteCardHTML(item, note, includeContentHeader) {
   const ratingStr = item.rating > 0 ? starString(item.rating) : '';
   const period = (item.startDate || item.endDate)
@@ -5613,6 +5812,7 @@ updateBackupBanner();
 renderBackupStatus();
 updateSaveIndicator(false);
 syncCopyDefaultPicker();
+syncTimelineSortPicker();
 </script>
 </body>
 </html>
