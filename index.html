@@ -178,62 +178,6 @@
   .more-menu-item:active { background: var(--bg-soft); }
   .more-menu-item.active { color: var(--accent); background: var(--accent-soft); }
 
-  /* READING TRACKER */
-  .tracker-card {
-    background: var(--bg-elev);
-    border: 1px solid var(--line-soft);
-    border-radius: 20px;
-    padding: 18px 16px 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 2px 10px rgba(26, 28, 25, 0.04);
-  }
-  .tracker-label { font-size: 11px; color: var(--ink-mute); font-weight: 600; letter-spacing: 0.02em; margin-bottom: 10px; }
-  .tracker-q {
-    display: inline-block;
-    background: var(--bg-soft);
-    border-radius: 16px 16px 16px 4px;
-    padding: 10px 16px;
-    font-size: 14.5px;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 12px;
-  }
-  .tracker-answer-row { display: flex; justify-content: flex-end; margin-bottom: 16px; }
-  .tracker-answer {
-    background: var(--bg-elev);
-    border: 1.5px solid var(--accent);
-    color: var(--accent);
-    border-radius: 999px;
-    padding: 9px 18px;
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .tracker-answer.logged {
-    background: var(--accent);
-    color: #fff;
-  }
-  .week-strip { display: flex; gap: 6px; }
-  .week-day { flex: 1; text-align: center; }
-  .week-day-name { font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 6px; }
-  .week-day-cell {
-    aspect-ratio: 1;
-    border-radius: 12px;
-    background: var(--bg-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink-dim);
-    font-variant-numeric: tabular-nums;
-  }
-  .week-day-cell.logged { background: var(--accent); color: #fff; }
-  .week-day-cell.today { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); }
-  .week-day-cell.logged.today { box-shadow: none; color: #fff; }
-  .tracker-streak { font-size: 12px; color: var(--ink-dim); font-weight: 600; margin-top: 12px; text-align: center; }
-
   /* SHELF (읽고 있는 작품 가로 스크롤) */
   .shelf-head { display: flex; align-items: baseline; justify-content: space-between; margin: 22px 0 12px; }
   .shelf-title { font-size: 21px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
@@ -2239,16 +2183,6 @@
   </div>
 
   <section class="view active" id="view-timeline">
-    <div class="tracker-card">
-      <div class="tracker-label">독서 트래커</div>
-      <div class="tracker-q">오늘 만화 봤나요?</div>
-      <div class="tracker-answer-row">
-        <button type="button" class="tracker-answer" id="trackerBtn" onclick="toggleTodayLog()">네! 봤어요!</button>
-      </div>
-      <div class="week-strip" id="weekStrip"></div>
-      <div class="tracker-streak" id="trackerStreak" style="display: none;"></div>
-    </div>
-
     <div class="banner-card" onclick="goTab('all')">
       <div class="banner-card-icon">📚</div>
       <div>
@@ -2370,7 +2304,7 @@
 
     <div style="margin-top: 24px;">
       <h3 style="font-size: 13px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.04em; margin-bottom: 10px;">만화책 검색 연동</h3>
-      <div style="font-size: 12px; color: var(--ink-dim); line-height: 1.6; margin-bottom: 10px;">만화책 정보 검색에는 <strong>카카오 책 검색 API</strong>를 사용해요. <a href="https://developers.kakao.com" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 600;">developers.kakao.com</a>에서 무료로 앱을 만들고 <strong>REST API 키</strong>를 발급받아 붙여넣으면 됩니다. 키는 이 브라우저에만 저장돼요. (웹툰 검색은 키 없이 바로 돼요)</div>
+      <div style="font-size: 12px; color: var(--ink-dim); line-height: 1.6; margin-bottom: 10px;">만화책 정보 검색에는 <strong>카카오 책 검색 API</strong>를 사용해요. <a href="https://developers.kakao.com" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 600;">developers.kakao.com</a>에서 무료로 앱을 만들고 <strong>REST API 키</strong>를 발급받아 붙여넣으면 됩니다. 키는 이 브라우저에만 저장돼요. 웹툰 검색도 전용 서버가 응답하지 않을 때 이 키로 대체 검색을 해요.</div>
       <div style="display: flex; gap: 8px;">
         <input type="password" class="form-input" id="kakaoKeyInput" placeholder="카카오 REST API 키" style="flex: 1;">
         <button class="btn btn-primary" onclick="saveKakaoKey()" style="flex-shrink: 0; padding: 12px 18px;">저장</button>
@@ -3032,7 +2966,6 @@ let state = {
   statusFilter: 'all',
   copyDefaultProgress: true,
   timelineSort: 'updated',
-  readingLog: [],
   lastSavedAt: null,
   templateFilter: 'all',
   sortBy: 'updated',
@@ -3111,9 +3044,6 @@ function load() {
         if (data.settings.copyDefaultProgress !== undefined) state.copyDefaultProgress = data.settings.copyDefaultProgress;
         state.timelineSort = data.settings.timelineSort || 'updated';
       }
-      if (Array.isArray(data.readingLog)) {
-        state.readingLog = data.readingLog;
-      }
     } else {
       state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
       state.ottPlatforms = DEFAULT_OTT.map((o, i) => ({ ...o, order: i, createdAt: Date.now() }));
@@ -3138,7 +3068,6 @@ function save(isDataChange) {
       templates: state.templates,
       ottPlatforms: state.ottPlatforms,
       countries: state.countries,
-      readingLog: state.readingLog || [],
       settings: {
         sortBy: state.sortBy,
         sortDir: state.sortDir,
@@ -3510,7 +3439,6 @@ function renderTimeline() {
     ? emptyHTML('읽고 있는 작품 없음', '+ 버튼으로 새 기록을 추가하세요')
     : watching.map(cardHTML).join('');
   renderShelf(watching);
-  renderTracker();
 }
 
 // n일째 계산 (시작일 기준, 없으면 등록일)
@@ -3553,55 +3481,6 @@ function renderShelf(watching) {
   }).join('');
 }
 
-// ============ READING TRACKER ============
-function toggleTodayLog() {
-  const t = today();
-  const log = state.readingLog || (state.readingLog = []);
-  const idx = log.indexOf(t);
-  if (idx >= 0) { log.splice(idx, 1); showToast('오늘 기록을 취소했어요'); }
-  else { log.push(t); showToast('오늘도 완독! 📚'); }
-  save(true);
-  renderTracker();
-}
-
-function renderTracker() {
-  const strip = document.getElementById('weekStrip');
-  if (!strip) return;
-  const log = new Set(state.readingLog || []);
-  const now = new Date();
-  const t = today();
-  // 이번 주 월요일
-  const day = now.getDay(); // 0=일
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((day + 6) % 7));
-  const names = ['월', '화', '수', '목', '금', '토', '일'];
-  let html = '';
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const cls = [ log.has(ds) ? 'logged' : '', ds === t ? 'today' : '' ].filter(Boolean).join(' ');
-    html += `<div class="week-day"><div class="week-day-name">${names[i]}</div><div class="week-day-cell ${cls}">${d.getDate()}</div></div>`;
-  }
-  strip.innerHTML = html;
-  // 버튼 상태
-  const btn = document.getElementById('trackerBtn');
-  const loggedToday = log.has(t);
-  btn.textContent = loggedToday ? '오늘 독서 완료 ✓' : '네! 봤어요!';
-  btn.classList.toggle('logged', loggedToday);
-  // 연속 일수
-  let streak = 0;
-  const cursor = new Date();
-  if (!loggedToday) cursor.setDate(cursor.getDate() - 1);
-  while (true) {
-    const ds = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}`;
-    if (log.has(ds)) { streak++; cursor.setDate(cursor.getDate() - 1); }
-    else break;
-  }
-  const streakEl = document.getElementById('trackerStreak');
-  if (streak >= 2) { streakEl.style.display = 'block'; streakEl.textContent = `🔥 연속 ${streak}일째 읽고 있어요`; }
-  else streakEl.style.display = 'none';
-}
 
 function renderAll() {
   let items = [...state.items];
@@ -4097,63 +3976,109 @@ function closeMetaSearch() {
   document.getElementById('metaSearchModal').classList.remove('active');
 }
 
+function fetchWithTimeout(url, opts = {}, ms = 10000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
+// 카카오 책 검색 (만화책 검색 + 웹툰 검색 폴백에 공용)
+async function searchKakaoBooks(q) {
+  const key = getKakaoKey();
+  if (!key) return { error: 'nokey' };
+  const res = await fetchWithTimeout(`https://dapi.kakao.com/v3/search/book?query=${encodeURIComponent(q)}&size=20`, {
+    headers: { Authorization: `KakaoAK ${key}` }
+  }, 10000);
+  if (res.status === 401 || res.status === 403) return { error: 'auth' };
+  if (!res.ok) return { error: 'http' };
+  const data = await res.json();
+  return { list: (data.documents || []).map(d => ({
+    title: d.title || '',
+    creator: (d.authors || []).join(', '),
+    publisher: d.publisher || '',
+    thumb: d.thumbnail || '',
+    link: d.url || '',
+    sub: [ (d.authors || []).join(', '), d.publisher, (d.datetime || '').slice(0, 4) ].filter(Boolean).join(' · '),
+    badge: d.publisher || ''
+  })) };
+}
+
+async function searchWebtoonApi(q) {
+  const res = await fetchWithTimeout(`${WEBTOON_API}/webtoons?keyword=${encodeURIComponent(q)}&perPage=20&page=1`, {}, 12000);
+  if (!res.ok) throw new Error('http ' + res.status);
+  const data = await res.json();
+  const list = data.webtoons || data.data || (Array.isArray(data) ? data : []);
+  const providerName = { NAVER: '네이버웹툰', KAKAO: '카카오웹툰', KAKAO_PAGE: '카카오페이지' };
+  return list.map(wt => ({
+    title: wt.title || '',
+    creator: Array.isArray(wt.authors) ? wt.authors.join(', ') : (wt.author || ''),
+    provider: providerName[wt.provider] || wt.provider || '',
+    thumb: Array.isArray(wt.thumbnail) ? (wt.thumbnail[0] || '') : (wt.thumbnail || ''),
+    link: wt.url || '',
+    sub: [ Array.isArray(wt.authors) ? wt.authors.join(', ') : wt.author, wt.isEnd ? '완결' : '연재중' ].filter(Boolean).join(' · '),
+    badge: providerName[wt.provider] || wt.provider || ''
+  }));
+}
+
+function renderMetaResults(isBook, notice) {
+  const results = document.getElementById('metaSearchResults');
+  if (metaResults.length === 0) {
+    results.innerHTML = `<div class="meta-hint">검색 결과가 없어요. 다른 검색어로 시도해보세요.</div>`;
+    return;
+  }
+  results.innerHTML = (notice ? `<div class="meta-hint" style="margin-bottom: 10px;">${notice}</div>` : '') + metaResults.map((r, i) => `
+    <div class="meta-result" onclick="pickMetaResult(${i})">
+      ${r.thumb ? `<img src="${escapeHTML(r.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<div class="meta-result-thumb-empty">${isBook ? '📖' : '📱'}</div>`}
+      <div class="meta-result-info">
+        <div class="meta-result-title">${escapeHTML(r.title)}</div>
+        <div class="meta-result-sub">${escapeHTML(r.sub)}</div>
+        ${r.badge ? `<span class="meta-result-badge">${escapeHTML(r.badge)}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
 async function runMetaSearch() {
   const q = document.getElementById('metaSearchInput').value.trim();
   if (!q) { showToast('검색어를 입력하세요'); return; }
   const isBook = state.selectedType === 'book';
   const results = document.getElementById('metaSearchResults');
-  results.innerHTML = `<div class="meta-hint">검색 중... ${isBook ? '' : '(무료 서버라 첫 검색은 몇십 초 걸릴 수 있어요)'}</div>`;
+  results.innerHTML = `<div class="meta-hint">검색 중...</div>`;
+
+  if (isBook) {
+    try {
+      const r = await searchKakaoBooks(q);
+      if (r.error === 'nokey') { results.innerHTML = `<div class="meta-hint">설정 → <strong>만화책 검색 연동</strong>에서 카카오 REST API 키를 먼저 저장해주세요.</div>`; return; }
+      if (r.error === 'auth') { results.innerHTML = `<div class="meta-hint">키가 올바르지 않아요. 설정에서 REST API 키를 다시 확인해주세요.</div>`; return; }
+      if (r.error) throw new Error(r.error);
+      metaResults = r.list;
+      renderMetaResults(true);
+    } catch (e) {
+      results.innerHTML = `<div class="meta-hint">검색에 실패했어요. 네트워크 상태를 확인하고 잠시 후 다시 시도해주세요.</div>`;
+    }
+    return;
+  }
+
+  // 웹툰: 비공식 API 시도 → 실패 시 카카오 책 검색 폴백
   try {
-    if (isBook) {
-      const key = getKakaoKey();
-      if (!key) { results.innerHTML = `<div class="meta-hint">설정에서 카카오 REST API 키를 먼저 저장해주세요.</div>`; return; }
-      const res = await fetch(`https://dapi.kakao.com/v3/search/book?query=${encodeURIComponent(q)}&size=20`, {
-        headers: { Authorization: `KakaoAK ${key}` }
-      });
-      if (res.status === 401) { results.innerHTML = `<div class="meta-hint">키가 올바르지 않아요. 설정에서 REST API 키를 다시 확인해주세요.</div>`; return; }
-      if (!res.ok) throw new Error('http ' + res.status);
-      const data = await res.json();
-      metaResults = (data.documents || []).map(d => ({
-        title: d.title || '',
-        creator: (d.authors || []).join(', '),
-        publisher: d.publisher || '',
-        thumb: d.thumbnail || '',
-        link: d.url || '',
-        sub: [ (d.authors || []).join(', '), d.publisher, (d.datetime || '').slice(0, 4) ].filter(Boolean).join(' · '),
-        badge: d.publisher || ''
-      }));
-    } else {
-      const res = await fetch(`${WEBTOON_API}/webtoons?keyword=${encodeURIComponent(q)}&perPage=20&page=1`);
-      if (!res.ok) throw new Error('http ' + res.status);
-      const data = await res.json();
-      const list = data.webtoons || data.data || (Array.isArray(data) ? data : []);
-      const providerName = { NAVER: '네이버웹툰', KAKAO: '카카오웹툰', KAKAO_PAGE: '카카오페이지' };
-      metaResults = list.map(wt => ({
-        title: wt.title || '',
-        creator: Array.isArray(wt.authors) ? wt.authors.join(', ') : (wt.author || ''),
-        provider: providerName[wt.provider] || wt.provider || '',
-        thumb: Array.isArray(wt.thumbnail) ? (wt.thumbnail[0] || '') : (wt.thumbnail || ''),
-        link: wt.url || '',
-        sub: [ Array.isArray(wt.authors) ? wt.authors.join(', ') : wt.author, wt.isEnd ? '완결' : '연재중' ].filter(Boolean).join(' · '),
-        badge: providerName[wt.provider] || wt.provider || ''
-      }));
-    }
-    if (metaResults.length === 0) {
-      results.innerHTML = `<div class="meta-hint">검색 결과가 없어요. 다른 검색어로 시도해보세요.</div>`;
-      return;
-    }
-    results.innerHTML = metaResults.map((r, i) => `
-      <div class="meta-result" onclick="pickMetaResult(${i})">
-        ${r.thumb ? `<img src="${escapeHTML(r.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<div class="meta-result-thumb-empty">${isBook ? '📖' : '📱'}</div>`}
-        <div class="meta-result-info">
-          <div class="meta-result-title">${escapeHTML(r.title)}</div>
-          <div class="meta-result-sub">${escapeHTML(r.sub)}</div>
-          ${r.badge ? `<span class="meta-result-badge">${escapeHTML(r.badge)}</span>` : ''}
-        </div>
-      </div>`).join('');
+    metaResults = await searchWebtoonApi(q);
+    renderMetaResults(false);
   } catch (e) {
-    console.error(e);
-    results.innerHTML = `<div class="meta-hint">검색에 실패했어요. 네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.${isBook ? '' : '<br>웹툰 검색 서버(비공식·무료)는 가끔 느리거나 응답하지 않을 수 있어요.'}</div>`;
+    results.innerHTML = `<div class="meta-hint">웹툰 검색 서버가 응답하지 않아요. 다른 방법으로 검색 중...</div>`;
+    try {
+      const r = await searchKakaoBooks(q + ' 웹툰');
+      if (r.list && r.list.length > 0) {
+        metaResults = r.list;
+        renderMetaResults(false, '⚠️ 웹툰 전용 서버가 중단되어 <strong>카카오 책 검색</strong> 결과(단행본 기준)로 대신 보여드려요. 표지·작가는 채워지지만 플랫폼은 직접 선택해주세요.');
+        return;
+      }
+      if (r.error === 'nokey') {
+        results.innerHTML = `<div class="meta-hint">웹툰 검색 서버(비공식 무료 API)가 현재 중단된 상태예요.<br><br>대신 <strong>카카오 책 검색</strong>으로 웹툰 단행본을 검색할 수 있어요 — 설정 → <strong>만화책 검색 연동</strong>에서 무료 카카오 키를 저장하면 자동으로 대체 검색이 됩니다.<br><br>지금은 제목·작가를 직접 입력하고 📷 버튼으로 표지를 넣어주세요.</div>`;
+        return;
+      }
+      results.innerHTML = `<div class="meta-hint">웹툰 검색 서버가 중단됐고, 대체 검색에서도 결과가 없어요. 직접 입력해주세요.</div>`;
+    } catch (e2) {
+      results.innerHTML = `<div class="meta-hint">검색에 실패했어요. 네트워크 상태를 확인하고 잠시 후 다시 시도해주세요.</div>`;
+    }
   }
 }
 
