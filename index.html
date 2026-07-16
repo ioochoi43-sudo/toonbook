@@ -4837,10 +4837,36 @@ function collageGroupKey(item) {
   return '';
 }
 
+function fmtShortDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt)) return '';
+  return `${String(dt.getFullYear()).slice(2)}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')}`;
+}
+
+function itemPeriodText(item) {
+  const s = fmtShortDate(item.startDate);
+  const e = fmtShortDate(item.endDate);
+  if (s && e) return `${s} ~ ${e}`;
+  if (s) return `${s} ~`;
+  if (e) return `~ ${e}`;
+  return '';
+}
+
+function itemPlatformName(item) {
+  if (item.type === 'webtoon') {
+    const ott = item.ott ? getOttById(item.ott) : null;
+    return ott ? ott.name : '';
+  }
+  return item.platform || '';
+}
+
 function collageCardHTML(item) {
   const stars = item.rating > 0 ? `<div style="font-size: 10px; color: #2f8a4c; letter-spacing: 1px;">${starString(item.rating)}</div>` : '';
   const prog = progressText(item);
   const sub = [item.creator, prog].filter(Boolean).join(' · ');
+  const plat = itemPlatformName(item);
+  const period = itemPeriodText(item);
   const thumb = item.thumb
     ? `<img src="${escapeHTML(item.thumb)}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">`
     : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #edf3ea;">${item.type === 'book' ? '📖' : '📱'}</div>`;
@@ -4848,6 +4874,8 @@ function collageCardHTML(item) {
     <div style="width: 118px; height: 158px; border-radius: 8px; overflow: hidden; border: 1px solid #dde7d8; background: #edf3ea;">${thumb}</div>
     <div style="font-size: 11.5px; font-weight: 700; color: #1a1c19; margin-top: 6px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHTML(item.title)}</div>
     ${sub ? `<div style="font-size: 9.5px; color: #596155; margin-top: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHTML(sub)}</div>` : ''}
+    ${plat ? `<div style="font-size: 9px; color: #2f8a4c; font-weight: 700; margin-top: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHTML(plat)}</div>` : ''}
+    ${period ? `<div style="font-size: 8.5px; color: #94a08e; margin-top: 1px; white-space: nowrap;">${escapeHTML(period)}</div>` : ''}
     ${stars}
   </div>`;
 }
@@ -4889,12 +4917,8 @@ async function generateCollage() {
 
   try {
     const canvas = await htmlToCanvas(headerHTML + groupsHTML + footerHTML);
-    const link = document.createElement('a');
-    link.download = `toon-collection-${new Date().toISOString().slice(0,10)}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
     closeCollageModal();
-    showToast('이미지가 저장되었습니다');
+    await saveCanvasImage(canvas, `toon-collection-${new Date().toISOString().slice(0,10)}.png`);
   } catch (e) {
     console.error(e);
     showToast('이미지 생성 실패');
@@ -4951,6 +4975,29 @@ function downloadWordDoc(bodyHTML, filename) {
 }
 
 // 이미지/PDF 렌더 (html2canvas)용 공통: 주어진 HTML을 캔버스로
+// 캔버스를 저장: 모바일에선 공유 시트(→ 이미지 저장으로 사진앱에 저장 가능), 미지원 환경은 파일 다운로드
+async function saveCanvasImage(canvas, filename) {
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+  if (blob && typeof navigator.canShare === 'function' && typeof File === 'function') {
+    try {
+      const file = new File([blob], filename, { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        showToast('공유 시트에서 "이미지 저장"을 누르면 사진앱에 저장돼요');
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') { showToast('저장을 취소했어요'); return; }
+      // 공유 실패 시 다운로드로 폴백
+    }
+  }
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('이미지가 저장되었습니다');
+}
+
 async function htmlToCanvas(innerHTML) {
   const renderEl = document.getElementById('exportRender');
   renderEl.innerHTML = innerHTML;
@@ -5001,11 +5048,7 @@ async function exportNote(format) {
     }
     const canvas = await htmlToCanvas(cardHTML);
     if (format === 'image') {
-      const link = document.createElement('a');
-      link.download = `${safeName}_노트.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('이미지가 저장되었습니다');
+      await saveCanvasImage(canvas, `${safeName}_노트.png`);
     } else if (format === 'pdf') {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
