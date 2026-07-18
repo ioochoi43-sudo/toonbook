@@ -5050,7 +5050,7 @@ async function generateCollage() {
     await saveCanvasImage(canvas, `toon-collection-${new Date().toISOString().slice(0,10)}.png`);
   } catch (e) {
     console.error(e);
-    showToast('이미지 생성 실패');
+    showToast(exportErrorMessage(e));
   }
 }
 
@@ -5151,12 +5151,39 @@ function downloadResultImage() {
 }
 
 async function htmlToCanvas(innerHTML) {
+  if (typeof html2canvas === 'undefined') {
+    throw new Error('LIB_MISSING');
+  }
   const renderEl = document.getElementById('exportRender');
   renderEl.innerHTML = innerHTML;
-  await new Promise(r => setTimeout(r, 150));
-  const canvas = await html2canvas(renderEl, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true, imageTimeout: 8000 });
+  await new Promise(r => setTimeout(r, 200));
+
+  // iOS는 캔버스 최대 크기 제한(약 1,600만 픽셀)이 있어 긴 노트를 2배 해상도로 그리면
+  // 소리 없이 실패한다. 콘텐츠 크기에 맞춰 해상도를 자동으로 낮춘다.
+  const w = renderEl.offsetWidth || 680;
+  const h = renderEl.scrollHeight || renderEl.offsetHeight || 800;
+  let scale = 2;
+  const MAX_DIM = 8000;        // 한 변 최대 픽셀
+  const MAX_AREA = 14000000;   // 전체 픽셀 수 여유치
+  scale = Math.min(scale, MAX_DIM / h, MAX_DIM / w, Math.sqrt(MAX_AREA / (w * h)));
+  scale = Math.max(0.6, Math.min(2, scale));
+
+  // 어떤 상황에서도 무한 대기하지 않도록 타임아웃
+  const work = html2canvas(renderEl, { scale, backgroundColor: '#ffffff', logging: false, useCORS: true, imageTimeout: 8000 });
+  const canvas = await Promise.race([
+    work,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), 25000))
+  ]);
   renderEl.innerHTML = '';
+  if (!canvas || !canvas.width || !canvas.height) throw new Error('EMPTY_CANVAS');
   return canvas;
+}
+
+function exportErrorMessage(e) {
+  if (e && e.message === 'LIB_MISSING') return '이미지 라이브러리를 불러오지 못했어요. 인터넷 연결 확인 후 새로고침해주세요';
+  if (e && e.message === 'TIMEOUT') return '이미지 생성이 너무 오래 걸려요. 사진 수를 줄이거나 잠시 후 다시 시도해주세요';
+  if (e && e.message === 'EMPTY_CANVAS') return '이미지를 그리지 못했어요. 노트가 너무 길면 PDF로 내보내보세요';
+  return '이미지 생성에 실패했어요. 잠시 후 다시 시도해주세요';
 }
 
 function canvasToPdf(canvas, pdf) {
@@ -5210,7 +5237,7 @@ async function exportNote(format) {
     }
   } catch(e) {
     console.error(e);
-    showToast('내보내기 실패');
+    showToast(exportErrorMessage(e));
   }
 }
 
