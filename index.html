@@ -1342,7 +1342,7 @@
     border: 1px solid var(--line);
     border-radius: 8px;
     font-size: 14px;
-    line-height: 1.7;
+    line-height: 1.62;
     word-break: break-word;
   }
   .md-preview h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
@@ -2533,8 +2533,8 @@
       </div>
 
       <div class="preview-toggle" id="previewToggle">
-        <button type="button" class="active" data-mode="edit">편집</button>
-        <button type="button" data-mode="preview">미리보기</button>
+        <button type="button" class="active" data-mode="edit">✏️ 편집</button>
+        <button type="button" data-mode="preview">👁 보기</button>
       </div>
 
       <div id="editorPane">
@@ -2906,6 +2906,24 @@
         <button type="button" class="meta-search-go" onclick="runMetaSearch()">검색</button>
       </div>
       <div id="metaSearchResults"></div>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE RESULT MODAL -->
+<div class="modal" id="imageResultModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">이미지 저장</div>
+      <button class="modal-close" onclick="closeImageResult()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 12px; max-height: 50vh; overflow-y: auto;">
+        <img id="imageResultImg" alt="생성된 이미지" style="width: 100%; display: block;">
+      </div>
+      <div style="font-size: 11.5px; color: var(--ink-mute); margin-bottom: 12px; line-height: 1.5;">💡 위 이미지를 <strong>길게 눌러도</strong> 바로 사진에 저장할 수 있어요</div>
+      <button class="btn btn-primary" onclick="shareResultImage()" style="width: 100%; margin-bottom: 8px;">📤 사진에 저장 / 공유</button>
+      <button class="btn" onclick="downloadResultImage()" style="width: 100%;">⬇ 파일로 다운로드</button>
     </div>
   </div>
 </div>
@@ -3297,9 +3315,9 @@ function renderMarkdown(md) {
 
     flushList();
 
-    // Empty line
+    // Empty line: 한 줄 비움은 문단 여백으로 충분 — 두 줄 이상 연속으로 비울 때만 <br> 추가
     if (trimmed === '') {
-      blocks.push('<br>');
+      if (i > 0 && lines[i - 1].trim() === '') blocks.push('<br>');
       continue;
     }
 
@@ -4628,10 +4646,8 @@ function openNoteModal(itemId, noteId) {
   pills.innerHTML = tmpls.map(t => `<button type="button" class="template-pill" onclick="insertTemplate('${t.id}')">📋 ${escapeHTML(t.name)}</button>`).join('')
     + `<button type="button" class="template-pill manage" onclick="openTemplateManager()">⚙ 관리</button>`;
 
-  // Reset edit mode
-  document.querySelectorAll('#previewToggle button').forEach(b => b.classList.toggle('active', b.dataset.mode === 'edit'));
-  document.getElementById('editorPane').style.display = 'block';
-  document.getElementById('previewPane').style.display = 'none';
+  // 기존 노트는 읽기 모드로, 새 노트는 편집 모드로
+  setNoteMode(noteId ? 'preview' : 'edit');
 
   closeDetailModal();
   setTimeout(() => {
@@ -4647,20 +4663,24 @@ function closeNoteModal() {
   state.noteEditingNoteId = null;
 }
 
-document.getElementById('previewToggle').addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('#previewToggle button').forEach(b => b.classList.toggle('active', b === btn));
-  if (btn.dataset.mode === 'preview') {
+function setNoteMode(mode) {
+  document.querySelectorAll('#previewToggle button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  if (mode === 'preview') {
     document.getElementById('editorPane').style.display = 'none';
     document.getElementById('previewPane').style.display = 'block';
-    document.getElementById('mdPreview').innerHTML = renderMarkdown(document.getElementById('noteContent').value);
+    document.getElementById('mdPreview').innerHTML = renderMarkdown(document.getElementById('noteContent').value) || '<span style="color: var(--ink-mute); font-size: 13px;">내용이 없어요. 편집을 눌러 작성해보세요.</span>';
     document.getElementById('notePhotosPreview').innerHTML = noteEditingImages.map(src =>
       `<div class="note-photo"><img src="${src}" alt="" onclick="openLightboxSrc(this.src)"></div>`).join('');
   } else {
     document.getElementById('editorPane').style.display = 'block';
     document.getElementById('previewPane').style.display = 'none';
   }
+}
+
+document.getElementById('previewToggle').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  setNoteMode(btn.dataset.mode);
 });
 
 function insertTemplate(templateId) {
@@ -4975,34 +4995,57 @@ function downloadWordDoc(bodyHTML, filename) {
 }
 
 // 이미지/PDF 렌더 (html2canvas)용 공통: 주어진 HTML을 캔버스로
-// 캔버스를 저장: 모바일에선 공유 시트(→ 이미지 저장으로 사진앱에 저장 가능), 미지원 환경은 파일 다운로드
+// 생성된 이미지를 결과 모달로 보여주고, 버튼 탭(새 사용자 제스처)에서 공유/저장 실행
+// (iOS는 비동기 작업 뒤 바로 share()를 부르면 차단하기 때문에 이 방식이 필요)
+let resultImageBlob = null;
+let resultImageDataURL = '';
+let resultImageName = 'image.png';
+
 async function saveCanvasImage(canvas, filename) {
-  const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-  if (blob && typeof navigator.canShare === 'function' && typeof File === 'function') {
+  resultImageDataURL = canvas.toDataURL('image/png');
+  resultImageName = filename;
+  resultImageBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+  document.getElementById('imageResultImg').src = resultImageDataURL;
+  document.getElementById('imageResultModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImageResult() {
+  document.getElementById('imageResultModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+async function shareResultImage() {
+  if (resultImageBlob && typeof navigator.canShare === 'function' && typeof File === 'function') {
     try {
-      const file = new File([blob], filename, { type: 'image/png' });
+      const file = new File([resultImageBlob], resultImageName, { type: 'image/png' });
       if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename });
-        showToast('공유 시트에서 "이미지 저장"을 누르면 사진앱에 저장돼요');
+        await navigator.share({ files: [file] });
         return;
       }
     } catch (e) {
-      if (e && e.name === 'AbortError') { showToast('저장을 취소했어요'); return; }
-      // 공유 실패 시 다운로드로 폴백
+      if (e && e.name === 'AbortError') return; // 사용자가 공유 취소
     }
   }
+  // 공유 미지원/실패 → 다운로드
+  downloadResultImage();
+}
+
+function downloadResultImage() {
   const link = document.createElement('a');
-  link.download = filename;
-  link.href = canvas.toDataURL('image/png');
+  link.download = resultImageName;
+  link.href = resultImageDataURL;
+  document.body.appendChild(link);
   link.click();
-  showToast('이미지가 저장되었습니다');
+  link.remove();
+  showToast('다운로드했어요');
 }
 
 async function htmlToCanvas(innerHTML) {
   const renderEl = document.getElementById('exportRender');
   renderEl.innerHTML = innerHTML;
   await new Promise(r => setTimeout(r, 150));
-  const canvas = await html2canvas(renderEl, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true });
+  const canvas = await html2canvas(renderEl, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true, imageTimeout: 8000 });
   renderEl.innerHTML = '';
   return canvas;
 }
