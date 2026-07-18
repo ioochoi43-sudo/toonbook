@@ -1120,6 +1120,52 @@
     vertical-align: 1px;
   }
 
+  /* NOTE VIEWER */
+  .note-view-title {
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+  .note-view-meta {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .note-view-content {
+    font-size: 14.5px;
+    line-height: 1.62;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .note-view-content h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; margin: 18px 0 8px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  .note-view-content h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin: 16px 0 6px; }
+  .note-view-content h3 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; }
+  .note-view-content p { margin: 6px 0; }
+  .note-view-content ul, .note-view-content ol { margin: 6px 0 6px 22px; }
+  .note-view-content li { margin: 3px 0; }
+  .note-view-content hr { border: none; border-top: 1px dashed var(--line); margin: 14px 0; }
+  .note-view-empty { color: var(--ink-mute); font-size: 13px; }
+  .note-view-photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .note-view-photos img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    display: block;
+  }
+
   /* LIGHTBOX */
   .lightbox {
     position: fixed;
@@ -2910,6 +2956,25 @@
   </div>
 </div>
 
+<!-- NOTE VIEW MODAL -->
+<div class="modal" id="noteViewModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">노트</div>
+      <button class="modal-close" onclick="closeNoteView()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="note-view-title" id="noteViewTitle"></div>
+      <div class="note-view-meta" id="noteViewMeta"></div>
+      <div class="note-view-content" id="noteViewContent"></div>
+      <div class="note-view-photos" id="noteViewPhotos"></div>
+      <div style="margin-top: 24px; display: flex; gap: 8px;">
+        <button class="btn btn-primary" onclick="editFromNoteView()" style="flex: 1;">✏️ 수정하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- IMAGE RESULT MODAL -->
 <div class="modal" id="imageResultModal">
   <div class="modal-content">
@@ -4397,7 +4462,7 @@ function openDetail(id) {
           const imgs = Array.isArray(n.images) ? n.images : [];
           const photoBadge = imgs.length > 0 ? `<span class="badge-photo">📷 ${imgs.length}</span>` : '';
           const photoStrip = imgs.length > 0 ? `<div class="note-item-photos">${imgs.slice(0, 4).map(s => `<img src="${s}" alt="" loading="lazy">`).join('')}${imgs.length > 4 ? `<span class="more">+${imgs.length - 4}</span>` : ''}</div>` : '';
-          return `<div class="note-item" onclick="openNoteModal('${item.id}', '${n.id}')">
+          return `<div class="note-item" onclick="openNoteView('${item.id}', '${n.id}')">
             <div class="note-item-title">
               <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(n.title || '제목 없음')}${photoBadge}</span>
               <span class="note-item-date">${fmtDateTime(n.updatedAt)}</span>
@@ -4616,6 +4681,50 @@ function closeLightbox() {
   document.getElementById('lightboxImg').removeAttribute('src');
 }
 
+// ============ NOTE VIEWER (읽기 전용 노트 화면) ============
+let noteViewItemId = null;
+let noteViewNoteId = null;
+
+function openNoteView(itemId, noteId) {
+  const item = state.items.find(i => i.id === itemId);
+  const note = item && (item.notes || []).find(n => n.id === noteId);
+  if (!note) return;
+  noteViewItemId = itemId;
+  noteViewNoteId = noteId;
+  document.getElementById('noteViewTitle').textContent = note.title || '제목 없음';
+  document.getElementById('noteViewMeta').textContent = `${item.title} · ${fmtDateTime(note.updatedAt)}`;
+  const rendered = renderMarkdown(note.content || '');
+  document.getElementById('noteViewContent').innerHTML = rendered || '<span class="note-view-empty">내용이 없어요</span>';
+  const imgs = Array.isArray(note.images) ? note.images : [];
+  document.getElementById('noteViewPhotos').innerHTML = imgs.map(s =>
+    `<img src="${s}" alt="" loading="lazy" onclick="openLightboxSrc(this.src)">`).join('');
+  closeDetailModal();
+  setTimeout(() => {
+    document.getElementById('noteViewModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }, 200);
+}
+
+function closeNoteView() {
+  document.getElementById('noteViewModal').classList.remove('active');
+  document.body.style.overflow = '';
+  // 보던 작품 상세로 복귀
+  if (noteViewItemId) {
+    const backId = noteViewItemId;
+    noteViewItemId = null;
+    noteViewNoteId = null;
+    setTimeout(() => openDetail(backId), 150);
+  }
+}
+
+function editFromNoteView() {
+  const itemId = noteViewItemId, noteId = noteViewNoteId;
+  noteViewItemId = null;
+  noteViewNoteId = null;
+  document.getElementById('noteViewModal').classList.remove('active');
+  setTimeout(() => openNoteModal(itemId, noteId), 150);
+}
+
 // ============ NOTE EDITOR ============
 function openNoteModal(itemId, noteId) {
   const item = state.items.find(i => i.id === itemId);
@@ -4646,8 +4755,8 @@ function openNoteModal(itemId, noteId) {
   pills.innerHTML = tmpls.map(t => `<button type="button" class="template-pill" onclick="insertTemplate('${t.id}')">📋 ${escapeHTML(t.name)}</button>`).join('')
     + `<button type="button" class="template-pill manage" onclick="openTemplateManager()">⚙ 관리</button>`;
 
-  // 기존 노트는 읽기 모드로, 새 노트는 편집 모드로
-  setNoteMode(noteId ? 'preview' : 'edit');
+  // 보기 화면이 따로 있으므로 편집기는 항상 편집 모드로
+  setNoteMode('edit');
 
   closeDetailModal();
   setTimeout(() => {
