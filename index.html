@@ -2349,6 +2349,12 @@
     </div>
 
     <div style="margin-top: 24px;">
+      <h3 style="font-size: 13px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.04em; margin-bottom: 10px;">숨긴 작품</h3>
+      <div style="font-size: 12px; color: var(--ink-dim); line-height: 1.6; margin-bottom: 10px;">숨긴 작품은 모든 화면·통계·내보내기에서 보이지 않고, 비밀번호를 입력해야 볼 수 있어요. (백업 파일에는 포함됩니다)</div>
+      <button class="btn" onclick="openHiddenGate()" style="width: 100%;">🔒 숨긴 작품 보기 <span id="hiddenCount" style="color: var(--ink-mute);"></span></button>
+    </div>
+
+    <div style="margin-top: 24px;">
       <h3 style="font-size: 13px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.04em; margin-bottom: 10px;">만화책 검색 연동</h3>
       <div style="font-size: 12px; color: var(--ink-dim); line-height: 1.6; margin-bottom: 10px;">만화책 정보 검색에는 <strong>카카오 책 검색 API</strong>를 사용해요. <a href="https://developers.kakao.com" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 600;">developers.kakao.com</a>에서 무료로 앱을 만들고 <strong>REST API 키</strong>를 발급받아 붙여넣으면 됩니다. 키는 이 브라우저에만 저장돼요. 웹툰 검색도 전용 서버가 응답하지 않을 때 이 키로 대체 검색을 해요.</div>
       <div style="display: flex; gap: 8px;">
@@ -2959,6 +2965,57 @@
   </div>
 </div>
 
+<!-- PIN SETUP MODAL -->
+<div class="modal" id="pinSetupModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="pinSetupTitle">비밀번호 설정</div>
+      <button class="modal-close" onclick="closePinSetup()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 12.5px; color: var(--ink-dim); line-height: 1.6; margin-bottom: 14px;">숨긴 작품을 볼 때 사용할 비밀번호예요. 이 브라우저에만 저장되며, <strong>잊어버리면 되찾을 수 없으니</strong> 기억할 수 있는 것으로 정해주세요.</div>
+      <div class="form-group">
+        <input type="password" class="form-input" id="pinNew" placeholder="새 비밀번호 (4자 이상)" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-input" id="pinNew2" placeholder="비밀번호 확인" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary" onclick="savePin()" style="width: 100%;">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN ENTER MODAL -->
+<div class="modal" id="pinEnterModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">비밀번호 입력</div>
+      <button class="modal-close" onclick="closePinEnter()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <input type="password" class="form-input" id="pinInput" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();verifyPin();}">
+      </div>
+      <div id="pinError" style="display: none; font-size: 12px; color: var(--red, #c0392b); margin-bottom: 10px;">비밀번호가 올바르지 않아요</div>
+      <button class="btn btn-primary" onclick="verifyPin()" style="width: 100%;">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- HIDDEN ITEMS MODAL -->
+<div class="modal" id="hiddenModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">🔒 숨긴 작품</div>
+      <button class="modal-close" onclick="closeHiddenModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="hiddenList"></div>
+      <button class="btn" onclick="openPinSetup(true)" style="width: 100%; margin-top: 14px;">비밀번호 변경</button>
+    </div>
+  </div>
+</div>
+
 <!-- NOTE VIEW MODAL -->
 <div class="modal" id="noteViewModal">
   <div class="modal-content">
@@ -3233,6 +3290,11 @@ function fmtDateTime(ts) {
   return `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
+// 숨김 처리되지 않은 작품만 (사용자 화면용)
+function vItems() {
+  return state.items.filter(i => !i.hidden);
+}
+
 function typeName(t) { return {webtoon:'웹툰', book:'만화책'}[t] || t; }
 function epUnit(item) { return item.type === 'book' ? '권' : '화'; }
 function statusName(s) { return {wishlist:'위시리스트', watching:'읽는 중', done:'완료', dropped:'중단'}[s] || s; }
@@ -3273,6 +3335,182 @@ function buildCopyText(item, withProgress) {
   }
   // 진행 정보가 없으면 제목만
   return t;
+}
+
+// ============ 숨기기 / 비밀번호 잠금 ============
+const PIN_STORAGE = 'toonArchive_pinHash';
+let hiddenUnlocked = false; // 세션 동안만 유지
+
+async function hashPin(text) {
+  try {
+    if (window.crypto && crypto.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('toonpin:' + text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) { /* 비보안 컨텍스트 등 → 폴백 */ }
+  // 폴백 해시 (간단, 로컬 잠금 용도)
+  let h1 = 5381, h2 = 52711;
+  const s = 'toonpin:' + text;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = ((h1 * 33) ^ c) >>> 0;
+    h2 = ((h2 * 31) + c) >>> 0;
+  }
+  return 'fb' + h1.toString(16) + h2.toString(16);
+}
+
+function getPinHash() {
+  try { return localStorage.getItem(PIN_STORAGE) || ''; } catch (e) { return ''; }
+}
+
+function updateHiddenCount() {
+  const el = document.getElementById('hiddenCount');
+  if (!el) return;
+  const n = state.items.filter(i => i.hidden).length;
+  el.textContent = n > 0 ? `(${n})` : '';
+}
+
+// --- 숨기기 / 해제 ---
+let pendingHideId = null;
+
+function hideItem(id) {
+  if (!getPinHash()) {
+    // 비밀번호 먼저 설정
+    pendingHideId = id;
+    closeDetailModal();
+    setTimeout(() => openPinSetup(false), 200);
+    return;
+  }
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  item.hidden = true;
+  item.updatedAt = Date.now();
+  save(true);
+  closeDetailModal();
+  render();
+  updateHiddenCount();
+  showToast('숨겼어요. 설정 → 숨긴 작품에서 볼 수 있어요');
+}
+
+function unhideItem(id) {
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  item.hidden = false;
+  item.updatedAt = Date.now();
+  save(true);
+  closeDetailModal();
+  render();
+  updateHiddenCount();
+  renderHiddenList();
+  showToast('숨김을 해제했어요');
+}
+
+// --- 비밀번호 설정 ---
+let pinSetupIsChange = false;
+
+function openPinSetup(isChange) {
+  pinSetupIsChange = !!isChange;
+  document.getElementById('pinSetupTitle').textContent = isChange ? '비밀번호 변경' : '비밀번호 설정';
+  document.getElementById('pinNew').value = '';
+  document.getElementById('pinNew2').value = '';
+  if (isChange) document.getElementById('hiddenModal').classList.remove('active');
+  document.getElementById('pinSetupModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('pinNew').focus(), 150);
+}
+
+function closePinSetup() {
+  document.getElementById('pinSetupModal').classList.remove('active');
+  document.body.style.overflow = '';
+  pendingHideId = null;
+}
+
+async function savePin() {
+  const p1 = document.getElementById('pinNew').value;
+  const p2 = document.getElementById('pinNew2').value;
+  if (p1.length < 4) { showToast('비밀번호는 4자 이상으로 해주세요'); return; }
+  if (p1 !== p2) { showToast('비밀번호가 서로 달라요'); return; }
+  try { localStorage.setItem(PIN_STORAGE, await hashPin(p1)); } catch (e) { showToast('저장 실패'); return; }
+  document.getElementById('pinSetupModal').classList.remove('active');
+  document.body.style.overflow = '';
+  showToast(pinSetupIsChange ? '비밀번호를 변경했어요' : '비밀번호를 설정했어요');
+  // 숨기기 도중이었다면 이어서 숨김 처리
+  if (pendingHideId) {
+    const id = pendingHideId;
+    pendingHideId = null;
+    hideItem(id);
+  } else if (pinSetupIsChange) {
+    setTimeout(() => openHiddenModal(), 150);
+  }
+}
+
+// --- 비밀번호 입력 게이트 ---
+function openHiddenGate() {
+  const n = state.items.filter(i => i.hidden).length;
+  if (!getPinHash()) {
+    if (n === 0) { showToast('숨긴 작품이 없어요. 작품 상세에서 🔒 숨기기를 눌러보세요'); return; }
+    openPinSetup(false);
+    return;
+  }
+  if (hiddenUnlocked) { openHiddenModal(); return; }
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinError').style.display = 'none';
+  document.getElementById('pinEnterModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('pinInput').focus(), 150);
+}
+
+function closePinEnter() {
+  document.getElementById('pinEnterModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+async function verifyPin() {
+  const v = document.getElementById('pinInput').value;
+  if (!v) return;
+  const ok = (await hashPin(v)) === getPinHash();
+  if (!ok) {
+    document.getElementById('pinError').style.display = 'block';
+    document.getElementById('pinInput').value = '';
+    return;
+  }
+  hiddenUnlocked = true; // 앱을 닫으면 다시 잠김
+  closePinEnter();
+  setTimeout(() => openHiddenModal(), 150);
+}
+
+// --- 숨긴 작품 목록 ---
+function openHiddenModal() {
+  renderHiddenList();
+  document.getElementById('hiddenModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeHiddenModal() {
+  document.getElementById('hiddenModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function renderHiddenList() {
+  const el = document.getElementById('hiddenList');
+  if (!el) return;
+  const hidden = state.items.filter(i => i.hidden);
+  if (hidden.length === 0) {
+    el.innerHTML = `<div style="font-size: 13px; color: var(--ink-mute); text-align: center; padding: 24px 0;">숨긴 작품이 없어요</div>`;
+    return;
+  }
+  el.innerHTML = hidden.map(i => `
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line-soft);">
+      <span class="card-type ${i.type}" style="flex-shrink: 0;">${typeName(i.type)}</span>
+      <span style="flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--ink); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHTML(i.title)}</span>
+      <button class="btn" style="padding: 8px 12px; font-size: 12px; flex-shrink: 0;" onclick="viewHiddenItem('${i.id}')">보기</button>
+      <button class="btn" style="padding: 8px 12px; font-size: 12px; flex-shrink: 0;" onclick="unhideItem('${i.id}')">해제</button>
+    </div>`).join('');
+}
+
+function viewHiddenItem(id) {
+  closeHiddenModal();
+  setTimeout(() => openDetail(id), 150);
 }
 
 // 클립보드 복사 (실패 시 fallback)
@@ -3509,18 +3747,19 @@ function render() {
 }
 
 function updateCounts() {
-  document.getElementById('cnt-all').textContent = state.items.length;
+  document.getElementById('cnt-all').textContent = vItems().length;
   // status filter pill counts (전체 탭 내부)
   const sc = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
-  sc('sc-all', state.items.length);
-  sc('sc-watching', state.items.filter(i => i.status === 'watching').length);
-  sc('sc-wishlist', state.items.filter(i => i.status === 'wishlist').length);
-  sc('sc-done', state.items.filter(i => i.status === 'done').length);
-  sc('sc-dropped', state.items.filter(i => i.status === 'dropped').length);
+  const vis = vItems();
+  sc('sc-all', vis.length);
+  sc('sc-watching', vis.filter(i => i.status === 'watching').length);
+  sc('sc-wishlist', vis.filter(i => i.status === 'wishlist').length);
+  sc('sc-done', vis.filter(i => i.status === 'done').length);
+  sc('sc-dropped', vis.filter(i => i.status === 'dropped').length);
 }
 
 function renderTimeline() {
-  const watching = state.items.filter(i => i.status === 'watching');
+  const watching = vItems().filter(i => i.status === 'watching');
   const s = state.timelineSort || 'updated';
   if (s === 'created') watching.sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
   else if (s === 'progress') watching.sort((a,b) => ((getProgress(b) ?? -1) - (getProgress(a) ?? -1)) || ((b.updatedAt||0)-(a.updatedAt||0)));
@@ -3576,7 +3815,7 @@ function renderShelf(watching) {
 
 
 function renderAll() {
-  let items = [...state.items];
+  let items = [...vItems()];
   if (state.typeFilter !== 'all') items = items.filter(i => i.type === state.typeFilter);
   if (state.countryFilter !== 'all') items = items.filter(i => i.country === state.countryFilter);
   if (state.statusFilter !== 'all') items = items.filter(i => i.status === state.statusFilter);
@@ -3591,9 +3830,11 @@ function renderAll() {
 
 function renderStats() {
   updateKakaoKeyStatus();
-  document.getElementById('statTotal').textContent = `${state.items.length}개`;
-  document.getElementById('statDone').textContent = `${state.items.filter(i => i.status === 'done').length}개`;
-  const rated = state.items.filter(i => i.rating > 0);
+  updateHiddenCount();
+  const visS = vItems();
+  document.getElementById('statTotal').textContent = `${visS.length}개`;
+  document.getElementById('statDone').textContent = `${visS.filter(i => i.status === 'done').length}개`;
+  const rated = visS.filter(i => i.rating > 0);
   document.getElementById('statRating').textContent = rated.length > 0
     ? `${(rated.reduce((s,i) => s+i.rating, 0)/rated.length).toFixed(2)} / 5.00 (${rated.length}건)`
     : '-';
@@ -3604,7 +3845,7 @@ function renderOttView() {
   const container = document.getElementById('ottView');
   if (!container) return;
   // webtoon items grouped by platform
-  const relevant = state.items.filter(i => i.type === 'webtoon');
+  const relevant = vItems().filter(i => i.type === 'webtoon');
   if (relevant.length === 0) {
     container.innerHTML = emptyHTML('웹툰 기록이 없어요', '플랫폼 정보를 담은 웹툰 기록이 쌓이면 여기 모입니다');
     return;
@@ -3651,7 +3892,7 @@ function renderOttView() {
 function renderStatsView() {
   const container = document.getElementById('statsView');
   if (!container) return;
-  const items = state.items;
+  const items = vItems();
   if (items.length === 0) {
     container.innerHTML = emptyHTML('아직 기록이 없어요', '기록을 추가하면 통계가 표시됩니다');
     return;
@@ -3749,7 +3990,7 @@ function renderStatsView() {
 function renderHallView() {
   const container = document.getElementById('hallView');
   if (!container) return;
-  const items = state.items.filter(i => i.rating >= 4)
+  const items = vItems().filter(i => i.rating >= 4)
     .sort((a,b) => (b.rating - a.rating) || ((b.updatedAt||0) - (a.updatedAt||0)));
   if (items.length === 0) {
     container.innerHTML = emptyHTML('아직 인생작이 없어요', '별점 ★4 이상을 준 기록이 여기 모입니다');
@@ -3781,7 +4022,7 @@ function renderCalendarView() {
   const container = document.getElementById('calendarView');
   if (!container) return;
   const dateField = calendarBasis === 'start' ? 'startDate' : 'endDate';
-  const withDate = state.items.filter(i => i[dateField]);
+  const withDate = vItems().filter(i => i[dateField]);
   if (withDate.length === 0) {
     container.innerHTML = emptyHTML('표시할 기록이 없어요', calendarBasis === 'start' ? '시작일이 있는 기록이 없어요' : '완료일이 있는 기록이 없어요');
     return;
@@ -4538,6 +4779,9 @@ function openDetail(id) {
     <div class="menu-items" style="margin-top: 24px;">
       <button class="menu-item" onclick="editFromDetail('${item.id}')"><span class="menu-item-icon">✎</span>기록 수정</button>
       ${item.status === 'watching' ? `<button class="menu-item" onclick="markDone('${item.id}')"><span class="menu-item-icon">✓</span>완료로 표시</button>` : ''}
+      ${item.hidden
+        ? `<button class="menu-item" onclick="unhideItem('${item.id}')"><span class="menu-item-icon">🔓</span>숨김 해제</button>`
+        : `<button class="menu-item" onclick="hideItem('${item.id}')"><span class="menu-item-icon">🔒</span>숨기기</button>`}
       <button class="menu-item danger" onclick="confirmDelete('${item.id}')"><span class="menu-item-icon">×</span>삭제하기</button>
     </div>
   `;
@@ -4925,7 +5169,7 @@ function closeCollageModal() {
 }
 
 function getCollageItems() {
-  return state.items.filter(i =>
+  return vItems().filter(i =>
     (collageType === 'all' || i.type === collageType) &&
     collageStatuses.has(i.status)
   );
@@ -5025,43 +5269,174 @@ async function generateCollage() {
   if (items.length > 120) { showToast('작품이 너무 많아요 (최대 120개). 조건을 좁혀주세요'); return; }
   showToast('이미지 생성 중...');
 
-  // 그룹핑
-  let groupsHTML = '';
-  const sortFn = (a, b) => (a.title||'').localeCompare(b.title||'', 'ko');
+  const sortFn = (a, b) => (a.title || '').localeCompare(b.title || '', 'ko');
+  let groups;
   if (collageGroup === 'none') {
-    groupsHTML = `<div style="display: flex; flex-wrap: wrap; gap: 14px;">${items.sort(sortFn).map(collageCardHTML).join('')}</div>`;
+    groups = [{ name: '', items: [...items].sort(sortFn) }];
   } else {
-    const groups = {};
+    const map = {};
     items.forEach(i => {
       const k = collageGroupKey(i);
-      (groups[k] = groups[k] || []).push(i);
+      (map[k] = map[k] || []).push(i);
     });
-    const keys = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
-    groupsHTML = keys.map(k => `
-      <div style="margin-bottom: 26px;">
-        <div style="font-size: 14px; font-weight: 700; color: #1a1c19; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #2f8a4c; display: inline-block;">${escapeHTML(k)} <span style="color: #94a08e; font-weight: 600; font-size: 12px;">${groups[k].length}</span></div>
-        <div style="display: flex; flex-wrap: wrap; gap: 14px;">${groups[k].sort(sortFn).map(collageCardHTML).join('')}</div>
-      </div>`).join('');
+    groups = Object.keys(map)
+      .sort((a, b) => map[b].length - map[a].length)
+      .map(k => ({ name: k, items: map[k].sort(sortFn) }));
   }
-
   const statusLabel = ['watching','done','dropped','wishlist'].filter(s => collageStatuses.has(s)).map(statusName).join(' · ');
   const typeLabel = collageType === 'all' ? '웹툰 · 만화책' : typeName(collageType);
-  const headerHTML = `
-    <div style="border-bottom: 2px solid #1a1c19; padding-bottom: 14px; margin-bottom: 22px;">
-      <div style="font-size: 11px; letter-spacing: 0.12em; color: #94a08e; font-weight: 600; margin-bottom: 4px;">MY COLLECTION</div>
-      <div style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #1a1c19;">${typeLabel} 기록</div>
-      <div style="font-size: 12px; color: #596155; margin-top: 4px;">${statusLabel} · ${items.length}개 · ${fmtToday()}</div>
-    </div>`;
-  const footerHTML = `<div style="margin-top: 26px; padding-top: 12px; border-top: 1px solid #dde7d8; font-size: 10px; color: #94a08e; letter-spacing: 0.06em; text-align: right;">TOON &amp; BOOK ARCHIVE</div>`;
 
   try {
-    const canvas = await htmlToCanvas(headerHTML + groupsHTML + footerHTML);
+    const canvas = await renderCollageToCanvas(groups, typeLabel, statusLabel, items.length);
     closeCollageModal();
     await saveCanvasImage(canvas, `toon-collection-${new Date().toISOString().slice(0,10)}.png`);
   } catch (e) {
     console.error(e);
     showToast(exportErrorMessage(e));
   }
+}
+
+// 컬렉션 이미지를 캔버스에 직접 렌더링
+async function renderCollageToCanvas(groups, typeLabel, statusLabel, totalCount) {
+  const W = 1080, PAD = 64, CW = W - PAD * 2;
+  const COLS = 4, GAP = 22;
+  const cardW = (CW - GAP * (COLS - 1)) / COLS;
+  const coverH = Math.round(cardW * 1.36);
+  const cv = document.createElement('canvas');
+  const setF = (ctx, size, weight, color) => {
+    ctx.font = `${weight || 400} ${size}px ${CANVAS_FONT}`;
+    if (color) ctx.fillStyle = color;
+  };
+
+  // 표지 이미지 미리 로드
+  const covers = new Map();
+  for (const g of groups) {
+    for (const it of g.items) {
+      if (it.thumb && !covers.has(it.id)) covers.set(it.id, await loadImageSafe(it.thumb));
+    }
+  }
+
+  const mctx = cv.getContext('2d');
+  function cardLines(ctx, it) {
+    setF(ctx, 20, 700);
+    const title = wrapCanvasText(ctx, it.title || '', cardW).slice(0, 2);
+    const sub = [it.creator, progressText(it)].filter(Boolean).join(' · ');
+    return {
+      title,
+      sub,
+      plat: itemPlatformName(it),
+      period: itemPeriodText(it),
+      stars: it.rating > 0 ? starString(it.rating) : ''
+    };
+  }
+  function cardTextH(L) {
+    let h = L.title.length * 27 + 4;
+    if (L.sub) h += 23;
+    if (L.plat) h += 22;
+    if (L.period) h += 20;
+    if (L.stars) h += 24;
+    return h;
+  }
+
+  function pass(ctx, draw) {
+    let y = PAD;
+    setF(ctx, 18, 700, '#9b9b95');
+    if (draw) ctx.fillText('MY COLLECTION', PAD, y + 14);
+    y += 34;
+    setF(ctx, 40, 700, '#1b1b1a');
+    if (draw) ctx.fillText(`${typeLabel} 기록`, PAD, y + 32);
+    y += 50;
+    setF(ctx, 20, 400, '#5c5c58');
+    if (draw) ctx.fillText(`${statusLabel} · ${totalCount}개 · ${fmtToday()}`, PAD, y + 16);
+    y += 34;
+    if (draw) { ctx.fillStyle = '#1b1b1a'; ctx.fillRect(PAD, y, CW, 3); }
+    y += 38;
+
+    for (const g of groups) {
+      if (g.name) {
+        setF(ctx, 27, 700, '#1b1b1a');
+        if (draw) {
+          ctx.fillText(g.name, PAD, y + 22);
+          const nw = ctx.measureText(g.name).width;
+          setF(ctx, 19, 600, '#9b9b95');
+          ctx.fillText(String(g.items.length), PAD + nw + 12, y + 21);
+          ctx.fillStyle = '#2f8a4c';
+          ctx.fillRect(PAD, y + 34, Math.min(nw, 120), 3);
+        }
+        y += 56;
+      }
+      for (let i = 0; i < g.items.length; i += COLS) {
+        const row = g.items.slice(i, i + COLS);
+        const Ls = row.map(it => cardLines(mctx, it));
+        const rowH = coverH + 10 + Math.max(...Ls.map(cardTextH));
+        row.forEach((it, j) => {
+          if (!draw) return;
+          const x = PAD + j * (cardW + GAP);
+          const img = covers.get(it.id);
+          ctx.save();
+          roundRectPath(ctx, x, y, cardW, coverH, 12);
+          ctx.clip();
+          if (img && img.width) {
+            const sc = Math.max(cardW / img.width, coverH / img.height);
+            const dw = img.width * sc, dh = img.height * sc;
+            ctx.drawImage(img, x + (cardW - dw) / 2, y + (coverH - dh) / 2, dw, dh);
+          } else {
+            ctx.fillStyle = '#f3f3f1';
+            ctx.fillRect(x, y, cardW, coverH);
+            ctx.font = `54px ${CANVAS_FONT}`;
+            ctx.fillText(it.type === 'book' ? '📖' : '📱', x + cardW / 2 - 27, y + coverH / 2 + 18);
+          }
+          ctx.restore();
+          ctx.strokeStyle = '#e7e7e3';
+          ctx.lineWidth = 1;
+          roundRectPath(ctx, x + 0.5, y + 0.5, cardW - 1, coverH - 1, 12);
+          ctx.stroke();
+          const L = Ls[j];
+          let ty = y + coverH + 10;
+          setF(ctx, 20, 700, '#1b1b1a');
+          for (const ln of L.title) { ctx.fillText(ln, x, ty + 17); ty += 27; }
+          ty += 2;
+          const ell = (str, size, weight, color, lh) => {
+            setF(ctx, size, weight, color);
+            let sTxt = str;
+            while (sTxt && ctx.measureText(sTxt).width > cardW) sTxt = sTxt.slice(0, -1);
+            if (sTxt !== str) sTxt = sTxt.slice(0, -1) + '…';
+            ctx.fillText(sTxt, x, ty + size * 0.82);
+            ty += lh;
+          };
+          if (L.sub) ell(L.sub, 16, 400, '#5c5c58', 23);
+          if (L.plat) ell(L.plat, 16, 700, '#2f8a4c', 22);
+          if (L.period) ell(L.period, 14, 400, '#9b9b95', 20);
+          if (L.stars) { setF(ctx, 17, 400, '#2f8a4c'); ctx.fillText(L.stars, x, ty + 15); ty += 24; }
+        });
+        y += rowH + 26;
+      }
+      y += 14;
+    }
+
+    if (draw) { ctx.fillStyle = '#e7e7e3'; ctx.fillRect(PAD, y, CW, 1); }
+    y += 16;
+    setF(ctx, 16, 500, '#9b9b95');
+    if (draw) {
+      const foot = 'TOON & BOOK ARCHIVE';
+      ctx.fillText(foot, PAD + CW - ctx.measureText(foot).width, y + 13);
+    }
+    y += 26 + PAD * 0.5;
+    return y;
+  }
+
+  const H = Math.ceil(pass(mctx, false));
+  let ps = H < 3500 ? 2 : (H < 7000 ? 1.5 : 1);
+  while (W * ps * H * ps > 13500000 && ps > 0.5) ps *= 0.9;
+  cv.width = Math.round(W * ps);
+  cv.height = Math.round(H * ps);
+  const ctx = cv.getContext('2d');
+  ctx.scale(ps, ps);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'alphabetic';
+  pass(ctx, true);
+  return cv;
 }
 
 function buildNoteCardHTML(item, note, includeContentHeader) {
@@ -5160,6 +5535,266 @@ function downloadResultImage() {
   showToast('다운로드했어요');
 }
 
+// ============ 순수 캔버스 렌더러 ============
+// html2canvas가 iOS에서 불안정해서, 노트/컬렉션 이미지는 캔버스에 직접 그린다.
+const CANVAS_FONT = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif';
+
+function loadImageSafe(src, timeoutMs) {
+  return new Promise(resolve => {
+    if (!src) return resolve(null);
+    const img = new Image();
+    if (!src.startsWith('data:')) img.crossOrigin = 'anonymous';
+    const t = setTimeout(() => resolve(null), timeoutMs || 6000);
+    img.onload = () => { clearTimeout(t); resolve(img); };
+    img.onerror = () => { clearTimeout(t); resolve(null); };
+    img.src = src;
+  });
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// 공백 우선, 안 되면 글자 단위로 줄바꿈
+function wrapCanvasText(ctx, text, maxW) {
+  const out = [];
+  for (const rawLine of String(text).split('\n')) {
+    if (rawLine === '') { out.push(''); continue; }
+    let line = '';
+    const words = rawLine.split(' ');
+    for (let wi = 0; wi < words.length; wi++) {
+      const word = words[wi];
+      const tryLine = line ? line + ' ' + word : word;
+      if (ctx.measureText(tryLine).width <= maxW) { line = tryLine; continue; }
+      // 단어 자체가 길면 글자 단위 분할
+      if (ctx.measureText(word).width > maxW) {
+        if (line) { out.push(line); line = ''; }
+        let chunk = '';
+        for (const ch of word) {
+          if (ctx.measureText(chunk + ch).width > maxW && chunk) { out.push(chunk); chunk = ch; }
+          else chunk += ch;
+        }
+        line = chunk;
+      } else {
+        out.push(line);
+        line = word;
+      }
+    }
+    out.push(line);
+  }
+  return out;
+}
+
+function stripInlineMd(s) {
+  return String(s)
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/==(.+?)==/g, '$1')
+    .replace(/~~(.+?)~~/g, '$1')
+    .replace(/(^|[^*])\*([^*]+)\*/g, '$1$2')
+    .replace(/`(.+?)`/g, '$1');
+}
+
+// 노트 내용을 그리기 블록으로 파싱
+function parseNoteBlocks(content) {
+  const blocks = [];
+  const lines = String(content || '').split('\n');
+  let prevEmpty = false;
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (t === '') {
+      if (prevEmpty) blocks.push({ k: 'gap' });
+      prevEmpty = true;
+      continue;
+    }
+    prevEmpty = false;
+    let m;
+    if ((m = t.match(/^### (.+)/))) blocks.push({ k: 'h3', t: stripInlineMd(m[1]) });
+    else if ((m = t.match(/^## (.+)/))) blocks.push({ k: 'h2', t: stripInlineMd(m[1]) });
+    else if ((m = t.match(/^# (.+)/))) blocks.push({ k: 'h1', t: stripInlineMd(m[1]) });
+    else if (/^-{3,}$/.test(t) || /^={3,}$/.test(t)) blocks.push({ k: 'hr' });
+    else if ((m = t.match(/^> (.+)/))) blocks.push({ k: 'quote', t: stripInlineMd(m[1]) });
+    else if ((m = t.match(/^[-*] (.+)/))) blocks.push({ k: 'li', t: stripInlineMd(m[1]), b: '•' });
+    else if ((m = t.match(/^(\d+)\. (.+)/))) blocks.push({ k: 'li', t: stripInlineMd(m[2]), b: m[1] + '.' });
+    else blocks.push({ k: 'p', t: stripInlineMd(t) });
+  }
+  return blocks;
+}
+
+// 노트 한 장을 캔버스에 직접 렌더링
+async function renderNoteToCanvas(item, note) {
+  const W = 1080, PAD = 72, CW = W - PAD * 2;
+  const cv = document.createElement('canvas');
+  const setF = (ctx, size, weight, color) => {
+    ctx.font = `${weight || 400} ${size}px ${CANVAS_FONT}`;
+    if (color) ctx.fillStyle = color;
+  };
+
+  const blocks = parseNoteBlocks(note.content);
+  const photos = [];
+  for (const s of (note.images || [])) {
+    const img = await loadImageSafe(s);
+    if (img && img.width) photos.push(img);
+  }
+
+  // 측정/그리기 공용 패스
+  function pass(ctx, draw) {
+    let y = PAD;
+    const text = (str, size, weight, color, lh, x, maxW) => {
+      setF(ctx, size, weight, color);
+      const lines = wrapCanvasText(ctx, str, maxW || CW);
+      for (const ln of lines) {
+        if (draw && ln) ctx.fillText(ln, x || PAD, y + size * 0.82);
+        y += lh || Math.round(size * 1.5);
+      }
+    };
+
+    // 헤더
+    setF(ctx, 19, 700, '#2f8a4c');
+    if (draw) ctx.fillText('TOON & BOOK ARCHIVE', PAD, y + 16);
+    y += 40;
+    const meta = [typeName(item.type), item.creator].filter(Boolean).join(' · ');
+    text(item.title, 30, 700, '#1b1b1a', 42);
+    if (meta) text(meta, 21, 400, '#9b9b95', 30);
+    y += 16;
+    if (draw) { ctx.fillStyle = '#1b1b1a'; ctx.fillRect(PAD, y, CW, 3); }
+    y += 34;
+
+    // 노트 제목/날짜
+    text(note.title || '제목 없음', 42, 700, '#1b1b1a', 56);
+    y += 2;
+    if (note.updatedAt) text(fmtDateTime(note.updatedAt), 20, 400, '#9b9b95', 28);
+    y += 24;
+
+    // 본문
+    for (const b of blocks) {
+      if (b.k === 'gap') { y += 26; continue; }
+      if (b.k === 'hr') {
+        y += 14;
+        if (draw) { ctx.fillStyle = '#e7e7e3'; ctx.fillRect(PAD, y, CW, 2); }
+        y += 24;
+        continue;
+      }
+      if (b.k === 'h1') { y += 22; text(b.t, 37, 700, '#1b1b1a', 48); if (draw) { ctx.fillStyle = '#e7e7e3'; ctx.fillRect(PAD, y + 2, CW, 2); } y += 16; continue; }
+      if (b.k === 'h2') { y += 18; text(b.t, 32, 700, '#1b1b1a', 44); y += 6; continue; }
+      if (b.k === 'h3') { y += 12; text(b.t, 28, 700, '#1b1b1a', 40); y += 4; continue; }
+      if (b.k === 'quote') {
+        const y0 = y;
+        text(b.t, 26, 400, '#5c5c58', 40, PAD + 28, CW - 28);
+        if (draw) { ctx.fillStyle = '#2f8a4c'; ctx.fillRect(PAD, y0 + 4, 5, y - y0 - 8); }
+        y += 6;
+        continue;
+      }
+      if (b.k === 'li') {
+        setF(ctx, 26, 400, '#1b1b1a');
+        const bw = ctx.measureText(b.b + ' ').width;
+        const y0 = y;
+        text(b.t, 26, 400, '#1b1b1a', 40, PAD + 34, CW - 34);
+        if (draw) { setF(ctx, 26, b.b === '•' ? 700 : 400, '#2f8a4c'); ctx.fillText(b.b, PAD + 4, y0 + 26 * 0.82); }
+        y += 2;
+        continue;
+      }
+      text(b.t, 26, 400, '#1b1b1a', 42);
+      y += 4;
+    }
+
+    // 사진
+    if (photos.length > 0) {
+      y += 20;
+      const gap = 18;
+      const colW = photos.length === 1 ? CW : (CW - gap) / 2;
+      let i = 0;
+      while (i < photos.length) {
+        const row = photos.slice(i, i + (photos.length === 1 ? 1 : 2));
+        let rowH = 0;
+        row.forEach(img => {
+          let h = colW * (img.height / img.width);
+          h = Math.max(colW * 0.55, Math.min(colW * 1.45, h));
+          rowH = Math.max(rowH, h);
+        });
+        row.forEach((img, j) => {
+          const x = PAD + j * (colW + gap);
+          let h = colW * (img.height / img.width);
+          h = Math.max(colW * 0.55, Math.min(colW * 1.45, h));
+          if (draw) {
+            ctx.save();
+            roundRectPath(ctx, x, y, colW, h, 14);
+            ctx.clip();
+            // cover 방식으로 채우기
+            const scale = Math.max(colW / img.width, h / img.height);
+            const dw = img.width * scale, dh = img.height * scale;
+            ctx.drawImage(img, x + (colW - dw) / 2, y + (h - dh) / 2, dw, dh);
+            ctx.restore();
+            ctx.strokeStyle = '#e7e7e3';
+            ctx.lineWidth = 1;
+            roundRectPath(ctx, x + 0.5, y + 0.5, colW - 1, h - 1, 14);
+            ctx.stroke();
+          }
+        });
+        y += rowH + gap;
+        i += row.length;
+      }
+      y -= gap;
+    }
+
+    // 푸터
+    y += 40;
+    if (draw) { ctx.fillStyle = '#e7e7e3'; ctx.fillRect(PAD, y, CW, 1); }
+    y += 18;
+    setF(ctx, 17, 500, '#9b9b95');
+    if (draw) {
+      const foot = `TOON & BOOK ARCHIVE · ${fmtToday()}`;
+      ctx.fillText(foot, PAD + CW - ctx.measureText(foot).width, y + 14);
+    }
+    y += 30 + PAD * 0.6;
+    return y;
+  }
+
+  const mctx = cv.getContext('2d');
+  const H = Math.ceil(pass(mctx, false));
+
+  // 해상도: 선명하게 하되 iOS 캔버스 한계(약 1,600만 픽셀) 안으로
+  let ps = H < 3500 ? 2 : (H < 7000 ? 1.5 : 1);
+  while (W * ps * H * ps > 13500000 && ps > 0.5) ps *= 0.9;
+  cv.width = Math.round(W * ps);
+  cv.height = Math.round(H * ps);
+  const ctx = cv.getContext('2d');
+  ctx.scale(ps, ps);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'alphabetic';
+  pass(ctx, true);
+  return cv;
+}
+
+// 여러 캔버스를 세로로 이어붙이기 (일괄 내보내기 합치기 모드)
+function stackCanvases(canvases) {
+  const gap = 4;
+  const w = Math.max(...canvases.map(c => c.width));
+  let h = canvases.reduce((s, c) => s + Math.round(c.height * (w / c.width)), 0) + gap * (canvases.length - 1);
+  let f = 1;
+  while (w * f * h * f > 13500000 && f > 0.3) f *= 0.9;
+  const out = document.createElement('canvas');
+  out.width = Math.round(w * f);
+  out.height = Math.round(h * f);
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#e7e7e3';
+  ctx.fillRect(0, 0, out.width, out.height);
+  let y = 0;
+  for (const c of canvases) {
+    const ch = Math.round(c.height * (w / c.width) * f);
+    ctx.drawImage(c, 0, y, Math.round(w * f), ch);
+    y += ch + Math.round(gap * f);
+  }
+  return out;
+}
+
 async function htmlToCanvas(innerHTML) {
   if (typeof html2canvas === 'undefined') {
     throw new Error('LIB_MISSING');
@@ -5223,26 +5858,28 @@ function noteToText(note) {
   return parts.join('\n');
 }
 
+// ============ NATIVE NOTE RENDERER ============
+
 async function exportNoteObj(item, note, format) {
   if (format === 'copy') {
     copyToClipboard(noteToText(note), '노트 텍스트가 복사됐어요 📋');
     return;
   }
   const safeName = (note.title || 'note').replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
-  const cardHTML = buildNoteCardHTML(item, note, true);
 
   showToast(format === 'pdf' ? 'PDF 생성 중...' : format === 'word' ? 'Word 생성 중...' : '이미지 생성 중...');
 
   try {
     if (format === 'word') {
-      downloadWordDoc(cardHTML, `${safeName}_노트`);
+      downloadWordDoc(buildNoteCardHTML(item, note, true), `${safeName}_노트`);
       showToast('Word 파일이 저장되었습니다');
       return;
     }
-    const canvas = await htmlToCanvas(cardHTML);
+    const canvas = await renderNoteToCanvas(item, note); // 자체 렌더러: 외부 라이브러리 불필요
     if (format === 'image') {
       await saveCanvasImage(canvas, `${safeName}_노트.png`);
     } else if (format === 'pdf') {
+      if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('LIB_MISSING');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       canvasToPdf(canvas, pdf);
@@ -5279,7 +5916,7 @@ async function exportNoteFromView(format) {
 // ============ ALL NOTES TEXT EXPORT ============
 function buildAllNotesText() {
   const chunks = [];
-  state.items.forEach(item => {
+  vItems().forEach(item => {
     const notes = item.notes || [];
     if (notes.length === 0) return;
     const meta = [typeName(item.type), item.creator].filter(Boolean).join(' · ');
@@ -5423,7 +6060,7 @@ async function bulkExportMerged(item, notes, safeBase) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     for (let i = 0; i < notes.length; i++) {
-      const canvas = await htmlToCanvas(buildNoteCardHTML(item, notes[i], true));
+      const canvas = await renderNoteToCanvas(item, notes[i]);
       if (i > 0) pdf.addPage();
       // 각 노트를 새 페이지부터: canvasToPdf는 현재 페이지에 그림
       canvasToPdfFresh(canvas, pdf);
@@ -5435,16 +6072,10 @@ async function bulkExportMerged(item, notes, safeBase) {
 
   if (bulkExportFormat === 'image') {
     showToast('이미지 생성 중...');
-    // 모든 노트를 하나의 컨테이너에 세로로 쌓아서 한 장으로
-    const combined = notes.map((n, i) =>
-      `<div style="${i > 0 ? 'margin-top: 32px; padding-top: 32px; border-top: 2px dashed #e8e6e1;' : ''}">${buildNoteCardHTML(item, n, i === 0)}</div>`
-    ).join('');
-    const canvas = await htmlToCanvas(combined);
-    const link = document.createElement('a');
-    link.download = `${safeBase}_노트모음.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    showToast(`이미지로 ${notes.length}개 노트를 저장했어요`);
+    const canvases = [];
+    for (const n of notes) canvases.push(await renderNoteToCanvas(item, n));
+    const canvas = canvases.length === 1 ? canvases[0] : stackCanvases(canvases);
+    await saveCanvasImage(canvas, `${safeBase}_노트모음.png`);
     return;
   }
 }
@@ -5486,7 +6117,7 @@ async function bulkExportSeparate(item, notes, safeBase) {
     showToast('PDF 생성 중...');
     const { jsPDF } = window.jspdf;
     for (let i = 0; i < notes.length; i++) {
-      const canvas = await htmlToCanvas(buildNoteCardHTML(item, notes[i], true));
+      const canvas = await renderNoteToCanvas(item, notes[i]);
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       canvasToPdfFresh(canvas, pdf);
       const nm = (notes[i].title || `노트${i+1}`).replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
@@ -5499,7 +6130,7 @@ async function bulkExportSeparate(item, notes, safeBase) {
   if (bulkExportFormat === 'image') {
     showToast('이미지 생성 중...');
     for (let i = 0; i < notes.length; i++) {
-      const canvas = await htmlToCanvas(buildNoteCardHTML(item, notes[i], true));
+      const canvas = await renderNoteToCanvas(item, notes[i]);
       const link = document.createElement('a');
       const nm = (notes[i].title || `노트${i+1}`).replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
       link.download = `${safeBase}_${i+1}_${nm}.png`;
@@ -6087,6 +6718,7 @@ function exportExcel() {
       return {
         '유형': typeName(item.type),
         '제목': item.title || '',
+        '숨김': item.hidden ? 'Y' : '',
         '작가': item.creator || '',
         '등장인물': item.cast || '',
         '플랫폼': ott ? ott.name : '',
