@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#f6faf5">
+<meta name="theme-color" content="#fafafa">
 <title>Toon &amp; Book Archive</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
@@ -14,14 +14,14 @@
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   :root {
-    --bg: #f6faf5;
+    --bg: #fafafa;
     --bg-elev: #ffffff;
-    --bg-soft: #edf3ea;
-    --line: #dde7d8;
-    --line-soft: #e6eee2;
-    --ink: #1a1c19;
-    --ink-dim: #596155;
-    --ink-mute: #94a08e;
+    --bg-soft: #f3f3f1;
+    --line: #e7e7e3;
+    --line-soft: #efefec;
+    --ink: #1b1b1a;
+    --ink-dim: #5c5c58;
+    --ink-mute: #9b9b95;
     --accent: #2f8a4c;
     --accent-soft: #e0f0e2;
     --red: #c4543a;
@@ -103,7 +103,7 @@
     scrollbar-width: none;
     position: sticky;
     top: 0;
-    background: rgba(246, 250, 245, 0.94);
+    background: rgba(250, 250, 250, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 50;
@@ -2371,6 +2371,8 @@
         💡 데이터는 <strong>이 기기에만</strong> 저장돼요. 다른 기기와는 자동으로 합쳐지지 않고, 오래 안 쓰면 사라질 수 있어요. 가끔 <strong>JSON 백업</strong>을 받아두면 안전하게 보관·복원할 수 있어요.
       </div>
       <button class="btn" onclick="openCollageModal()" style="width: 100%; margin-bottom: 8px;">🖼 작품 목록 이미지로 저장</button>
+      <button class="btn" onclick="exportAllNotesTxt()" style="width: 100%; margin-bottom: 8px;">📝 전체 노트 내보내기 (.txt)</button>
+      <button class="btn" onclick="copyAllNotes()" style="width: 100%; margin-bottom: 8px;">📋 전체 노트 복사</button>
       <button class="btn" onclick="exportExcel()" style="width: 100%; margin-bottom: 8px;">📊 엑셀 파일로 내보내기 (.xlsx)</button>
       <button class="btn btn-primary" onclick="exportData()" style="width: 100%; margin-bottom: 8px;">💾 JSON 백업 다운로드</button>
       <label class="btn" style="width: 100%; margin-bottom: 8px; display: block; text-align: center;">
@@ -2617,11 +2619,12 @@
 
       <div class="form-group" style="margin-top: 16px;">
         <label class="form-label">이 노트 내보내기</label>
-        <div class="export-options export-options-3">
+        <div class="export-options export-options-3" style="margin-bottom: 8px;">
           <button type="button" class="btn" onclick="exportNote('image')">이미지</button>
           <button type="button" class="btn" onclick="exportNote('pdf')">PDF</button>
           <button type="button" class="btn" onclick="exportNote('word')">Word</button>
         </div>
+        <button type="button" class="btn" onclick="exportNote('copy')" style="width: 100%;">📋 텍스트 복사</button>
       </div>
 
       <div class="btn-row">
@@ -2968,7 +2971,16 @@
       <div class="note-view-meta" id="noteViewMeta"></div>
       <div class="note-view-content" id="noteViewContent"></div>
       <div class="note-view-photos" id="noteViewPhotos"></div>
-      <div style="margin-top: 24px; display: flex; gap: 8px;">
+      <div class="form-group" style="margin-top: 24px;">
+        <label class="form-label">이 노트 내보내기</label>
+        <div class="export-options export-options-3" style="margin-bottom: 8px;">
+          <button type="button" class="btn" onclick="exportNoteFromView('image')">이미지</button>
+          <button type="button" class="btn" onclick="exportNoteFromView('pdf')">PDF</button>
+          <button type="button" class="btn" onclick="exportNoteFromView('word')">Word</button>
+        </div>
+        <button type="button" class="btn" onclick="exportNoteFromView('copy')" style="width: 100%;">📋 텍스트 복사</button>
+      </div>
+      <div style="display: flex; gap: 8px;">
         <button class="btn btn-primary" onclick="editFromNoteView()" style="flex: 1;">✏️ 수정하기</button>
       </div>
     </div>
@@ -3264,18 +3276,16 @@ function buildCopyText(item, withProgress) {
 }
 
 // 클립보드 복사 (실패 시 fallback)
-function copyToClipboard(text) {
+function copyToClipboard(text, msg) {
+  const done = () => showToast(msg || `복사됨: ${text}`);
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(
-      () => showToast(`복사됨: ${text}`),
-      () => fallbackCopy(text)
-    );
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, msg));
   } else {
-    fallbackCopy(text);
+    fallbackCopy(text, msg);
   }
 }
 
-function fallbackCopy(text) {
+function fallbackCopy(text, msg) {
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -3286,7 +3296,7 @@ function fallbackCopy(text) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast(`복사됨: ${text}`);
+    showToast(msg || `복사됨: ${text}`);
   } catch(e) {
     showToast('복사 실패');
   }
@@ -5204,17 +5214,21 @@ function canvasToPdf(canvas, pdf) {
   }
 }
 
-async function exportNote(format) {
-  const item = state.items.find(i => i.id === state.noteEditingItemId);
-  if (!item) return;
-  const content = document.getElementById('noteContent').value.trim();
-  const noteTitle = document.getElementById('noteTitleInput').value.trim() || '제목 없음';
-  if (!content && noteEditingImages.length === 0) {
-    showToast('노트 내용이나 사진을 먼저 넣어주세요');
+// 노트 → 일반 텍스트
+function noteToText(note) {
+  const parts = [`■ ${note.title || '제목 없음'}${note.updatedAt ? ` (${fmtDateTime(note.updatedAt)})` : ''}`];
+  if ((note.content || '').trim()) parts.push((note.content || '').trim());
+  const imgCount = (note.images || []).length;
+  if (imgCount > 0) parts.push(`[사진 ${imgCount}장]`);
+  return parts.join('\n');
+}
+
+async function exportNoteObj(item, note, format) {
+  if (format === 'copy') {
+    copyToClipboard(noteToText(note), '노트 텍스트가 복사됐어요 📋');
     return;
   }
-  const note = { title: noteTitle, content, images: noteEditingImages };
-  const safeName = (noteTitle || 'note').replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
+  const safeName = (note.title || 'note').replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
   const cardHTML = buildNoteCardHTML(item, note, true);
 
   showToast(format === 'pdf' ? 'PDF 생성 중...' : format === 'word' ? 'Word 생성 중...' : '이미지 생성 중...');
@@ -5239,6 +5253,59 @@ async function exportNote(format) {
     console.error(e);
     showToast(exportErrorMessage(e));
   }
+}
+
+// 편집기에서 내보내기 (작성 중인 내용 기준)
+async function exportNote(format) {
+  const item = state.items.find(i => i.id === state.noteEditingItemId);
+  if (!item) return;
+  const content = document.getElementById('noteContent').value.trim();
+  const noteTitle = document.getElementById('noteTitleInput').value.trim() || '제목 없음';
+  if (!content && noteEditingImages.length === 0) {
+    showToast('노트 내용이나 사진을 먼저 넣어주세요');
+    return;
+  }
+  await exportNoteObj(item, { title: noteTitle, content, images: noteEditingImages }, format);
+}
+
+// 노트 보기 화면에서 내보내기 (저장된 노트 기준)
+async function exportNoteFromView(format) {
+  const item = state.items.find(i => i.id === noteViewItemId);
+  const note = item && (item.notes || []).find(n => n.id === noteViewNoteId);
+  if (!note) return;
+  await exportNoteObj(item, note, format);
+}
+
+// ============ ALL NOTES TEXT EXPORT ============
+function buildAllNotesText() {
+  const chunks = [];
+  state.items.forEach(item => {
+    const notes = item.notes || [];
+    if (notes.length === 0) return;
+    const meta = [typeName(item.type), item.creator].filter(Boolean).join(' · ');
+    chunks.push(`〈${item.title}〉${meta ? ` (${meta})` : ''}\n${'─'.repeat(24)}\n${notes.map(noteToText).join('\n\n')}`);
+  });
+  return chunks.join('\n\n\n');
+}
+
+function exportAllNotesTxt() {
+  const text = buildAllNotesText();
+  if (!text) { showToast('저장된 노트가 없어요'); return; }
+  const blob = new Blob(['\ufeff' + text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `toon-notes-${new Date().toISOString().slice(0, 10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  showToast('전체 노트를 저장했어요');
+}
+
+function copyAllNotes() {
+  const text = buildAllNotesText();
+  if (!text) { showToast('저장된 노트가 없어요'); return; }
+  copyToClipboard(text, '전체 노트가 복사됐어요 📋');
 }
 
 // ============ BULK NOTE EXPORT ============
