@@ -900,6 +900,95 @@
     font-variant-numeric: tabular-nums;
   }
   .ep-btn.watched { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* 부(시즌) 구성 - 폼 */
+  .ep-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .parts-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    cursor: pointer;
+    user-select: none;
+  }
+  .parts-switch input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+  .part-row { display: grid; grid-template-columns: 1fr 1fr 38px; gap: 8px; margin-bottom: 8px; }
+  .part-del {
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    border-radius: 8px;
+    color: var(--ink-mute);
+    font-size: 17px;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .part-add-btn {
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed var(--line);
+    background: none;
+    border-radius: 10px;
+    color: var(--accent);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+  .parts-sub-label { font-size: 12px; font-weight: 600; color: var(--ink-dim); margin-bottom: 6px; }
+  .part-row-head { display: grid; grid-template-columns: 1fr 1fr 38px; gap: 8px; font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 5px; padding-left: 2px; }
+  select.part-select {
+    padding-right: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239b9b95' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    cursor: pointer;
+  }
+  .unit-input { position: relative; }
+  .unit-input .form-input { padding-right: 58px; }
+  .unit-input-suffix { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--ink-mute); pointer-events: none; }
+  .parts-hint { font-size: 11.5px; color: var(--ink-mute); margin-top: 8px; line-height: 1.5; }
+
+  /* 부(시즌) 구성 - 상세 회차 그리드 */
+  .part-block {
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    padding: 11px 12px;
+    margin-top: 10px;
+    background: var(--bg-elev);
+  }
+  .part-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .part-head::-webkit-details-marker { display: none; }
+  .part-chev { display: inline-block; color: var(--ink-mute); font-size: 11px; margin-right: 6px; transition: transform 0.15s; }
+  .part-block[open] .part-chev { transform: rotate(90deg); }
+  .part-count { font-size: 11.5px; font-weight: 600; color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+  .part-count.done { color: var(--accent); }
+  .part-block .episodes-grid { margin-top: 10px; }
+  .part-all-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
   .ep-btn:active { transform: scale(0.92); }
 
   .ep-mode-toggle {
@@ -2493,10 +2582,30 @@
         </div>
 
         <div class="form-group form-section" id="section-drama">
-          <label class="form-label" id="epSectionLabel">회차</label>
-          <div class="form-row">
+          <div class="ep-section-head">
+            <label class="form-label" id="epSectionLabel" style="margin-bottom: 0;">회차</label>
+            <label class="parts-switch" id="partsSwitchWrap">
+              <input type="checkbox" id="fUseParts" onchange="togglePartsMode(this.checked)">
+              1부·2부로 나누기
+            </label>
+          </div>
+          <div class="form-row" id="flatEpRow">
             <input type="number" class="form-input" id="fCurrentEp" placeholder="현재 화" min="0">
             <input type="number" class="form-input" id="fTotalEp" placeholder="전체 화 (선택)" min="1">
+          </div>
+          <div id="partsEditor" style="display: none;">
+            <div class="part-row-head"><span>부 이름</span><span>화수</span><span></span></div>
+            <div id="partsRows"></div>
+            <button type="button" class="part-add-btn" onclick="addPartRow()">+ 부 추가</button>
+            <div class="parts-sub-label">지금 읽은 곳</div>
+            <div class="form-row">
+              <select class="form-input part-select" id="fCurPart"></select>
+              <div class="unit-input">
+                <input type="number" class="form-input" id="fCurPartEp" placeholder="0" min="0">
+                <span class="unit-input-suffix">화까지</span>
+              </div>
+            </div>
+            <div class="parts-hint" id="partsTotalHint"></div>
           </div>
         </div>
 
@@ -3306,12 +3415,53 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 
+// ============ 부(시즌) 구성 ============
+// item.parts = [{ name: '1부', total: 80 }, ...]
+// 회차 체크는 내부적으로 전체 번호(1..totalEp)로 저장하고, 화면에서만 "2부 5화"로 바꿔 보여준다.
+function hasParts(item) {
+  return !!item && item.type === 'webtoon' && Array.isArray(item.parts) && item.parts.length > 0;
+}
+
+function partRanges(item) {
+  let s = 0;
+  return item.parts.map((p, i) => {
+    const total = p.total || 0;
+    const r = { i, name: p.name || `${i + 1}부`, start: s + 1, end: s + total, total };
+    s += total;
+    return r;
+  });
+}
+
+// 전체 번호 → { pi(부 인덱스), local(그 부의 몇 화), name }
+function globalToPart(item, g) {
+  const rs = partRanges(item);
+  if (!(g > 0)) return { pi: 0, local: 0, name: rs[0].name };
+  for (const r of rs) {
+    if (r.total > 0 && g <= r.end) return { pi: r.i, local: g - r.start + 1, name: r.name };
+  }
+  const last = rs[rs.length - 1];
+  return { pi: last.i, local: Math.max(0, g - last.start + 1), name: last.name };
+}
+
+// "2부 5화" / "5화" / "5권"
+function epLabel(item, g) {
+  if (hasParts(item)) {
+    const p = globalToPart(item, g);
+    return `${p.name} ${p.local}화`;
+  }
+  return `${g}${epUnit(item)}`;
+}
+
 function getProgress(item) {
   if (item.totalEp > 0) return Math.min(100, Math.round((item.currentEp || 0) / item.totalEp * 100));
   return null;
 }
 
 function progressText(item) {
+  if (hasParts(item) && item.totalEp > 0) {
+    const cur = item.currentEp || 0;
+    return cur > 0 ? `${epLabel(item, cur)} · ${cur}/${item.totalEp}화` : `시작 전 · 0/${item.totalEp}화`;
+  }
   if (item.totalEp > 0) return `${item.currentEp || 0} / ${item.totalEp} ${epUnit(item)}`;
   return null;
 }
@@ -3331,7 +3481,7 @@ function buildCopyText(item, withProgress) {
   // 진행 상황 포함
   if (item.totalEp > 0 || item.currentEp > 0) {
     const next = item.totalEp > 0 ? Math.min((item.currentEp || 0) + 1, item.totalEp) : (item.currentEp || 0) + 1;
-    return `${t} ${next}${epUnit(item)}~`;
+    return `${t} ${epLabel(item, next)}~`;
   }
   // 진행 정보가 없으면 제목만
   return t;
@@ -3796,8 +3946,8 @@ function renderShelf(watching) {
     const unit = epUnit(item);
     const cur = item.currentEp || 0;
     let progLine = '';
-    if (pct !== null) progLine = `${pct}% (${cur}${unit})`;
-    else if (cur > 0) progLine = `${cur}${unit}까지`;
+    if (pct !== null) progLine = cur > 0 ? `${pct}% (${epLabel(item, cur)})` : `${pct}%`;
+    else if (cur > 0) progLine = `${epLabel(item, cur)}까지`;
     const cover = item.thumb
       ? `<img src="${escapeHTML(item.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
       : `<div class="shelf-cover-empty">${item.type === 'book' ? '📖' : '📱'}</div>`;
@@ -4236,7 +4386,125 @@ function selectType(type) {
   document.getElementById('fCurrentEp').placeholder = isBook ? '현재 권' : '현재 화';
   document.getElementById('fTotalEp').placeholder = isBook ? '전체 권 (선택)' : '전체 화 (선택)';
   document.getElementById('creatorLabel').textContent = isBook ? '작가' : '작가 (글/그림)';
+  // 부 나누기는 웹툰 전용 — 만화책으로 바꾸면 일반 입력으로 되돌림
+  const usePartsEl = document.getElementById('fUseParts');
+  if (type !== 'webtoon' && usePartsEl.checked) {
+    usePartsEl.checked = false;
+    partsToFlatInputs();
+  }
+  applyPartsUI();
 }
+
+// ---- 폼: 부 편집기 ----
+function applyPartsUI() {
+  const isWebtoon = state.selectedType === 'webtoon';
+  const on = isWebtoon && document.getElementById('fUseParts').checked;
+  document.getElementById('partsSwitchWrap').style.display = isWebtoon ? '' : 'none';
+  document.getElementById('flatEpRow').style.display = on ? 'none' : '';
+  document.getElementById('partsEditor').style.display = on ? '' : 'none';
+  if (on) renderPartsEditor();
+}
+
+function togglePartsMode(on) {
+  if (on) {
+    // 일반 입력값을 1부로 옮겨서 시작
+    const flatTotal = parseInt(document.getElementById('fTotalEp').value) || '';
+    const flatCur = parseInt(document.getElementById('fCurrentEp').value) || 0;
+    if (!state.formParts || state.formParts.length === 0) {
+      state.formParts = [{ name: '1부', total: flatTotal }, { name: '2부', total: '' }];
+    }
+    state.formCurPart = 0;
+    document.getElementById('fCurPartEp').value = flatCur || '';
+  } else {
+    partsToFlatInputs();
+  }
+  applyPartsUI();
+}
+
+// 부 입력값 → 일반(전체 번호) 입력값으로 환산
+function partsToFlatInputs() {
+  const rows = state.formParts || [];
+  const totals = rows.map(r => parseInt(r.total) || 0);
+  const sum = totals.reduce((a, b) => a + b, 0);
+  const pi = Math.min(Math.max(0, state.formCurPart || 0), Math.max(0, rows.length - 1));
+  let local = parseInt(document.getElementById('fCurPartEp').value) || 0;
+  if (totals[pi]) local = Math.min(local, totals[pi]);
+  const cur = totals.slice(0, pi).reduce((a, b) => a + b, 0) + local;
+  document.getElementById('fTotalEp').value = sum || '';
+  document.getElementById('fCurrentEp').value = cur || '';
+}
+
+function renderPartsEditor() {
+  const rows = state.formParts || [];
+  document.getElementById('partsRows').innerHTML = rows.map((p, i) => `
+    <div class="part-row">
+      <input type="text" class="form-input" value="${escapeHTML(String(p.name || ''))}" placeholder="${i + 1}부" oninput="onPartInput(${i}, 'name', this.value)">
+      <input type="number" class="form-input" value="${p.total === '' || p.total == null ? '' : p.total}" placeholder="화수" min="1" oninput="onPartInput(${i}, 'total', this.value)">
+      <button type="button" class="part-del" onclick="removePartRow(${i})" aria-label="부 삭제">×</button>
+    </div>`).join('');
+  refreshPartsSummary();
+}
+
+// 입력 중에는 행을 다시 그리지 않고(포커스 유지) 선택지/합계만 갱신
+function refreshPartsSummary() {
+  const rows = state.formParts || [];
+  const sel = document.getElementById('fCurPart');
+  if (state.formCurPart >= rows.length) state.formCurPart = Math.max(0, rows.length - 1);
+  sel.innerHTML = rows.map((p, i) => `<option value="${i}">${escapeHTML(String(p.name || '').trim() || `${i + 1}부`)}</option>`).join('');
+  sel.value = String(state.formCurPart || 0);
+  const totals = rows.map(r => parseInt(r.total) || 0);
+  const sum = totals.reduce((a, b) => a + b, 0);
+  const missing = totals.filter(t => t <= 0).length;
+  document.getElementById('partsTotalHint').textContent =
+    `총 ${sum}화` + (missing ? ` · 화수를 안 적은 부가 ${missing}개 있어요 (연재 중이면 지금까지 나온 화수)` : '') +
+    ' · 0화 = 그 부를 아직 시작 안 함';
+}
+
+function onPartInput(i, field, val) {
+  if (!state.formParts || !state.formParts[i]) return;
+  state.formParts[i][field] = field === 'total' ? (val === '' ? '' : parseInt(val) || '') : val;
+  refreshPartsSummary();
+}
+
+function addPartRow() {
+  state.formParts = state.formParts || [];
+  state.formParts.push({ name: `${state.formParts.length + 1}부`, total: '' });
+  renderPartsEditor();
+  const inputs = document.querySelectorAll('#partsRows .part-row:last-child input[type="number"]');
+  if (inputs[0]) inputs[0].focus();
+}
+
+function removePartRow(i) {
+  if (!state.formParts || state.formParts.length <= 1) {
+    showToast('부를 하나 이상 남겨주세요. 나누기를 끄려면 위 체크를 해제하세요');
+    return;
+  }
+  state.formParts.splice(i, 1);
+  if ((state.formCurPart || 0) >= i && state.formCurPart > 0) state.formCurPart--;
+  renderPartsEditor();
+}
+
+// 저장용: 폼의 부 구성을 검증하고 전체 번호로 환산
+function readPartsFromForm() {
+  const rows = state.formParts || [];
+  if (rows.length === 0) return { error: '부를 하나 이상 추가해주세요' };
+  const parts = [];
+  for (let i = 0; i < rows.length; i++) {
+    const total = parseInt(rows[i].total) || 0;
+    const name = String(rows[i].name || '').trim() || `${i + 1}부`;
+    if (total <= 0) return { error: `${name}의 화수를 입력해주세요 (연재 중이면 지금까지 나온 화수)` };
+    parts.push({ name, total });
+  }
+  const pi = Math.min(Math.max(0, parseInt(document.getElementById('fCurPart').value) || 0), parts.length - 1);
+  const local = Math.min(Math.max(0, parseInt(document.getElementById('fCurPartEp').value) || 0), parts[pi].total);
+  const before = parts.slice(0, pi).reduce((s, p) => s + p.total, 0);
+  const totalEp = parts.reduce((s, p) => s + p.total, 0);
+  return { parts, totalEp, currentEp: before + local };
+}
+
+document.getElementById('fCurPart').addEventListener('change', (e) => {
+  state.formCurPart = parseInt(e.target.value) || 0;
+});
 
 // ============ IMAGE HELPERS ============
 // 사진을 캔버스로 축소·압축해서 localStorage에 부담 없게 저장
@@ -4567,6 +4835,10 @@ function resetForm() {
   state.selectedOtt = null;
   state.selectedCountry = null;
   state.coverThumb = null;
+  state.formParts = [];
+  state.formCurPart = 0;
+  document.getElementById('fUseParts').checked = false;
+  document.getElementById('fCurPartEp').value = '';
   updateCoverPreview();
   selectType('webtoon');
   document.querySelectorAll('#statusPicker .status-option').forEach(o => o.classList.toggle('active', o.dataset.status === 'watching'));
@@ -4595,6 +4867,18 @@ function fillForm(item) {
   state.selectedOtt = item.ott || null;
   state.selectedCountry = item.country || null;
   state.coverThumb = item.thumb || null;
+  if (hasParts(item)) {
+    state.formParts = item.parts.map(p => ({ name: p.name, total: p.total }));
+    const pos = globalToPart(item, item.currentEp || 0);
+    state.formCurPart = pos.pi;
+    document.getElementById('fUseParts').checked = true;
+    document.getElementById('fCurPartEp').value = pos.local || '';
+  } else {
+    state.formParts = [];
+    state.formCurPart = 0;
+    document.getElementById('fUseParts').checked = false;
+    document.getElementById('fCurPartEp').value = '';
+  }
   updateCoverPreview();
   selectType(state.selectedType);
   document.querySelectorAll('#statusPicker .status-option').forEach(o => o.classList.toggle('active', o.dataset.status === state.selectedStatus));
@@ -4611,7 +4895,22 @@ function saveContent(e) {
   const isEdit = !!document.getElementById('editId').value;
   const existing = isEdit ? state.items.find(i => i.id === id) : null;
 
+  // 회차 / 부 구성
+  let parts = null;
+  let totalEp = parseInt(document.getElementById('fTotalEp').value) || 0;
+  let currentEp = parseInt(document.getElementById('fCurrentEp').value) || 0;
+  if (state.selectedType === 'webtoon' && document.getElementById('fUseParts').checked) {
+    const r = readPartsFromForm();
+    if (r.error) { showToast(r.error); return; }
+    parts = r.parts;
+    totalEp = r.totalEp;
+    currentEp = r.currentEp;
+  }
+  if (totalEp > 0) currentEp = Math.min(currentEp, totalEp);
+
   const item = {
+    // 폼에 없는 필드(숨김 여부, 개별 체크 기록, 체크 모드 등)는 그대로 유지
+    ...(existing || {}),
     id,
     type: state.selectedType,
     status: state.selectedStatus,
@@ -4623,8 +4922,11 @@ function saveContent(e) {
     country: state.selectedCountry,
     link: document.getElementById('fLink').value.trim(),
     thumb: state.coverThumb || '',
-    totalEp: parseInt(document.getElementById('fTotalEp').value) || 0,
-    currentEp: parseInt(document.getElementById('fCurrentEp').value) || 0,
+    totalEp,
+    currentEp,
+    parts,
+    epWatched: existing && Array.isArray(existing.epWatched) ? existing.epWatched.filter(n => n <= totalEp) : [],
+    epSeqMode: existing && typeof existing.epSeqMode === 'boolean' ? existing.epSeqMode : true,
     startDate: document.getElementById('fStartDate').value,
     endDate: document.getElementById('fEndDate').value,
     rating: state.selectedRating,
@@ -4658,15 +4960,43 @@ function openDetail(id) {
     const watchedSet = new Set(item.epWatched || []);
     const seqMode = item.epSeqMode !== false; // 기본은 순차 모드
     const watchedCount = seqMode ? (item.currentEp || 0) : watchedSet.size;
-    let grid = '';
-    for (let i = 1; i <= item.totalEp; i++) {
-      const on = seqMode ? (i <= (item.currentEp || 0)) : watchedSet.has(i);
-      grid += `<button class="ep-btn ${on ? 'watched' : ''}" onclick="toggleEpisode('${item.id}', ${i})">${i}</button>`;
+    const curG = item.currentEp || 0;
+    const isOn = (g) => seqMode ? g <= curG : watchedSet.has(g);
+    let gridHTML = '';
+    if (hasParts(item)) {
+      // 부별로 접고 펼 수 있는 블록 — 다음 읽을 회차가 있는 부를 기본으로 펼침
+      const focusG = Math.min(curG + 1, item.totalEp);
+      const openSet = partOpenState[item.id];
+      gridHTML = partRanges(item).filter(r => r.total > 0).map(r => {
+        let cells = '', readN = 0;
+        for (let g = r.start; g <= r.end; g++) {
+          const on = isOn(g);
+          if (on) readN++;
+          cells += `<button class="ep-btn ${on ? 'watched' : ''}" onclick="toggleEpisode('${item.id}', ${g})">${g - r.start + 1}</button>`;
+        }
+        const done = readN >= r.total;
+        const open = openSet ? openSet.has(r.i) : (focusG >= r.start && focusG <= r.end);
+        return `<details class="part-block" data-pi="${r.i}" ${open ? 'open' : ''} ontoggle="rememberPartOpen('${item.id}')">
+          <summary class="part-head">
+            <span><span class="part-chev">▶</span>${escapeHTML(r.name)}</span>
+            <span class="part-count ${done ? 'done' : ''}">${readN} / ${r.total}화${done ? ' ✓' : ''}</span>
+          </summary>
+          <div class="episodes-grid">${cells}</div>
+          ${done ? '' : `<button type="button" class="part-all-btn" onclick="markPartRead('${item.id}', ${r.start}, ${r.end})">이 부 전체 읽음으로 체크</button>`}
+        </details>`;
+      }).join('');
+    } else {
+      let cells = '';
+      for (let i = 1; i <= item.totalEp; i++) {
+        cells += `<button class="ep-btn ${isOn(i) ? 'watched' : ''}" onclick="toggleEpisode('${item.id}', ${i})">${i}</button>`;
+      }
+      gridHTML = `<div class="episodes-grid">${cells}</div>`;
     }
     const pct = Math.min(100, Math.round(watchedCount / item.totalEp * 100));
+    const whereLabel = hasParts(item) && seqMode && curG > 0 ? ` · ${epLabel(item, curG)}까지` : '';
     episodesHTML = `<div class="episodes-section">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
-        <div class="detail-label" style="margin-bottom:0;">${item.type === 'book' ? '권' : '회차'} 진행 (${watchedCount} / ${item.totalEp})</div>
+        <div class="detail-label" style="margin-bottom:0;">${item.type === 'book' ? '권' : '회차'} 진행${whereLabel} (${watchedCount} / ${item.totalEp})</div>
         <div class="ep-mode-toggle">
           <button class="ep-mode-btn ${!seqMode ? 'active' : ''}" onclick="setEpMode('${item.id}', false)">개별</button>
           <button class="ep-mode-btn ${seqMode ? 'active' : ''}" onclick="setEpMode('${item.id}', true)">순차</button>
@@ -4674,7 +5004,7 @@ function openDetail(id) {
       </div>
       <div style="font-size:11px;color:var(--ink-mute);margin-bottom:8px;">${seqMode ? '탭하면 거기까지 한꺼번에 체크돼요' : `읽은 ${unit}만 하나씩 탭해서 체크해요`}</div>
       <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-      <div class="episodes-grid">${grid}</div>
+      ${gridHTML}
     </div>`;
   }
   let progressHTML = '';
@@ -4813,6 +5143,44 @@ function markDone(id) {
   render();
   closeDetailModal();
   setTimeout(() => promptDoneReview(id), 250);
+}
+
+// 상세 화면에서 펼쳐 둔 부를 기억 (체크할 때마다 화면이 다시 그려져도 유지)
+const partOpenState = {};
+function rememberPartOpen(itemId) {
+  const set = new Set();
+  document.querySelectorAll('#detailBody .part-block').forEach(d => { if (d.open) set.add(parseInt(d.dataset.pi)); });
+  partOpenState[itemId] = set;
+}
+
+// 한 부를 통째로 읽음 처리
+function markPartRead(id, start, end) {
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  const seqMode = item.epSeqMode !== false;
+  if (seqMode) {
+    item.currentEp = Math.max(item.currentEp || 0, end);
+  } else {
+    const set = new Set(item.epWatched || []);
+    for (let g = start; g <= end; g++) set.add(g);
+    item.epWatched = Array.from(set).sort((a, b) => a - b);
+    let cur = 0;
+    while (set.has(cur + 1)) cur++;
+    item.currentEp = cur;
+  }
+  item.updatedAt = Date.now();
+  const watchedCount = seqMode ? (item.currentEp || 0) : (item.epWatched || []).length;
+  let becameDone = false;
+  if (item.totalEp > 0 && watchedCount >= item.totalEp && item.status !== 'done') {
+    item.status = 'done';
+    if (!item.endDate) item.endDate = today();
+    becameDone = true;
+  }
+  save(true);
+  render();
+  openDetail(id);
+  showToast('체크했어요');
+  if (becameDone) setTimeout(() => promptDoneReview(id), 300);
 }
 
 function toggleEpisode(id, ep) {
@@ -6728,8 +7096,9 @@ function exportExcel() {
         '별점': item.rating || '',
         '시작일': item.startDate || '',
         '완료일': item.endDate || '',
-        '현재 화/권': item.currentEp || '',
+        '현재 화/권': hasParts(item) ? (item.currentEp ? epLabel(item, item.currentEp) : '') : (item.currentEp || ''),
         '전체 화/권': item.totalEp || '',
+        '부 구성': hasParts(item) ? item.parts.map(p => `${p.name} ${p.total}화`).join(', ') : '',
         '진행률(%)': getProgress(item) ?? '',
         '한줄 메모': item.memo || '',
         '노트 개수': (item.notes || []).length,
