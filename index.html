@@ -900,6 +900,194 @@
     font-variant-numeric: tabular-nums;
   }
   .ep-btn.watched { background: var(--accent); color: white; border-color: var(--accent); }
+  /* ===== 읽기 계획 ===== */
+  .plan-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .plan-toolbar .seg-picker { flex: 1; max-width: 220px; }
+  .plan-mini-btn {
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    border-radius: 100px;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .plan-mini-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .plan-mini-btn.ghost { border-style: dashed; color: var(--ink-mute); }
+  .plan-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  .plan-nav-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    font-size: 21px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    font-family: var(--sans);
+    flex-shrink: 0;
+  }
+  .plan-nav-title { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; text-align: center; }
+  .plan-nav-tag {
+    display: inline-block;
+    font-size: 10.5px; font-weight: 700;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 100px; padding: 2px 8px;
+    margin-left: 6px; vertical-align: 2px;
+  }
+
+  .plan-summary { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; padding: 13px 14px 4px; margin-bottom: 14px; }
+  .plan-summary-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .plan-summary-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .plan-summary-hint { font-size: 11px; color: var(--ink-mute); }
+  .plan-sum-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-soft); cursor: pointer; }
+  .plan-summary-head + .plan-sum-row { border-top: none; }
+  .plan-sum-row:active { opacity: 0.6; }
+  .plan-sum-main { flex: 1; min-width: 0; }
+  .plan-sum-line { font-size: 14.5px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; line-height: 1.4; }
+  .plan-sum-when { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; }
+  .plan-sum-copy { font-size: 15px; opacity: 0.7; flex-shrink: 0; }
+
+  .plan-day { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; }
+  .plan-day.today { border-color: var(--accent); }
+  .plan-day-head { display: flex; justify-content: space-between; align-items: center; min-height: 30px; }
+  .plan-day-title { display: flex; align-items: baseline; gap: 6px; }
+  .plan-day-num { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .plan-day.past .plan-day-num { color: var(--ink-mute); }
+  .plan-day-dow { font-size: 13px; font-weight: 600; color: var(--ink-dim); }
+  .plan-day-dow.sun, .plan-cal-head .sun, .plan-cell.sun .plan-cell-num { color: #d4553f; }
+  .plan-day-dow.sat, .plan-cal-head .sat, .plan-cell.sat .plan-cell-num { color: #3d7bd4; }
+  .plan-today-tag { font-size: 10.5px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 100px; padding: 2px 7px; align-self: center; }
+  .plan-add-btn { border: none; background: none; color: var(--accent); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 0 6px 12px; }
+  .plan-rows { margin-top: 4px; }
+  .plan-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-top: 1px dashed var(--line-soft); }
+  .plan-check {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    background: var(--bg-elev);
+    flex-shrink: 0;
+    cursor: pointer;
+    color: #fff;
+    font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    font-family: var(--sans);
+  }
+  .plan-row.done .plan-check { background: var(--accent); border-color: var(--accent); }
+  .plan-row-text { flex: 1; min-width: 0; cursor: pointer; padding-top: 2px; }
+  .plan-row-line { font-size: 14.5px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; line-height: 1.4; }
+  .plan-row.done .plan-row-line { text-decoration: line-through; color: var(--ink-mute); font-weight: 500; }
+  .plan-row-note { display: block; font-size: 11.5px; color: var(--ink-mute); margin-top: 3px; line-height: 1.45; text-decoration: none; }
+  .plan-row-note.carry { color: #b8730c; }
+  .plan-row-note.extra { color: var(--accent); }
+  .plan-row-copy { border: none; background: none; font-size: 15px; cursor: pointer; padding: 2px; flex-shrink: 0; opacity: 0.7; }
+
+  .plan-cal { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; padding: 10px 8px; margin-bottom: 12px; }
+  .plan-cal-head { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; font-weight: 600; color: var(--ink-mute); margin-bottom: 4px; }
+  .plan-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .plan-cell {
+    min-height: 50px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    font-family: var(--sans);
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 6px 0 4px;
+    gap: 4px;
+    color: var(--ink);
+  }
+  .plan-cell.sel { background: var(--accent-soft); }
+  .plan-cell-num { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; }
+  .plan-cell.today .plan-cell-num { background: var(--accent); color: #fff !important; }
+  .plan-cell-badge {
+    min-width: 18px; height: 18px;
+    padding: 0 5px;
+    border-radius: 100px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 10.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .plan-cell-badge.alldone { background: var(--accent-soft); color: var(--accent); }
+
+  /* 계획 추가/수정 */
+  .plan-item-list { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
+  .plan-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-elev);
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    width: 100%;
+  }
+  .plan-item.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .plan-item-cover {
+    width: 32px; height: 44px;
+    border-radius: 6px;
+    background: var(--bg-soft);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    overflow: hidden;
+  }
+  .plan-item-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .plan-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .plan-item-title { font-size: 14px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plan-item-sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plan-item-check { color: var(--accent); font-weight: 800; flex-shrink: 0; }
+  .plan-item-group-label { font-size: 11.5px; color: var(--ink-mute); font-weight: 600; margin: 8px 2px 0; }
+  .plan-empty-hint { font-size: 12.5px; color: var(--ink-mute); background: var(--bg-soft); border-radius: 10px; padding: 12px; line-height: 1.5; }
+  .plan-ep-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .plan-ep-status { font-size: 11.5px; color: var(--ink-mute); text-align: right; }
+  .plan-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .plan-part-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; scrollbar-width: none; }
+  .plan-part-tabs::-webkit-scrollbar { display: none; }
+  .ep-btn.plan-sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ep-btn.plan-seen { background: var(--bg-soft); color: var(--ink-mute); border-color: var(--line-soft); }
+  .ep-btn.plan-else { border: 1.5px dashed #e0a54a; color: #b8730c; }
+  .plan-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--ink-mute); margin-top: 8px; }
+  .plan-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .plan-range { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 13px; color: var(--ink-dim); flex-wrap: wrap; }
+  .plan-range .form-input { width: 76px; padding: 9px 10px; }
+  .plan-range-label { font-size: 12px; font-weight: 600; color: var(--ink-mute); }
+  .plan-range-part { font-weight: 600; color: var(--ink); }
+  .plan-ep-sel { font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; line-height: 1.5; }
+  .plan-ep-sel b { color: var(--ink); }
+  .plan-ep-else { color: #b8730c; font-size: 11.5px; margin-top: 2px; }
+  .plan-preview { background: var(--bg-soft); border-radius: 10px; padding: 11px 13px; font-size: 14.5px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; line-height: 1.45; }
+  .plan-preview.empty { color: var(--ink-mute); font-weight: 500; }
+  .plan-preview-label { font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 6px; }
+  .plan-locked { font-size: 12.5px; color: #8a5a0a; background: #fff6e6; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; line-height: 1.5; }
+
+  /* 어디까지 읽었나요? */
+  .plan-check-target { font-size: 16px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; line-height: 1.4; }
+  .plan-check-date { font-size: 12px; color: var(--ink-mute); margin: 2px 0 14px; }
+  .plan-check-hint { font-size: 12px; color: var(--ink-dim); margin-bottom: 8px; }
+  .plan-check-partlabel { grid-column: 1 / -1; font-size: 11.5px; font-weight: 700; color: var(--ink-dim); margin-top: 4px; }
+  .ep-btn.extra { border: 1.5px dashed var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .plan-check-quick { display: flex; gap: 6px; margin: 10px 0 14px; flex-wrap: wrap; }
+  .plan-more { border-top: 1px dashed var(--line); padding-top: 12px; margin-bottom: 12px; }
+  .plan-more-label { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); margin-bottom: 8px; }
+  .plan-more-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .plan-upto { display: flex; align-items: center; gap: 6px; }
+  .plan-upto .form-input { width: 104px; padding: 8px 10px; }
+  .plan-upto select.form-input { width: auto; padding-right: 30px; }
+  .plan-extra-state { font-size: 12.5px; color: var(--accent); font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .plan-extra-state:empty { display: none; }
+  .plan-check-preview { font-size: 12.5px; line-height: 1.65; background: var(--bg-soft); border-radius: 10px; padding: 10px 12px; color: var(--ink-dim); }
+  .plan-check-preview b { color: var(--ink); }
+  .plan-check-preview:empty { display: none; }
+  #confirmDesc { white-space: pre-line; }
+
 
   /* 부(시즌) 구성 - 폼 */
   .ep-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -1779,6 +1967,9 @@
     color: var(--accent);
     font-weight: 600;
   }
+  .ott-picker-check { margin-left: auto; font-size: 13px; color: var(--accent); flex-shrink: 0; }
+  .ott-picker-hint { font-size: 12px; color: var(--ink-mute); margin: -4px 0 10px; }
+  .ott-chip-row { display: inline-flex; flex-wrap: wrap; gap: 6px; }
   .ott-picker-dot {
     width: 10px;
     height: 10px;
@@ -2268,6 +2459,11 @@
     flex-wrap: wrap;
     align-items: center;
   }
+
+  @supports (-webkit-touch-callout: none) {
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
+  }
+  html { touch-action: manipulation; }
 </style>
 </head>
 <body>
@@ -2287,6 +2483,7 @@
   <button class="tab active" data-tab="timeline">타임라인</button>
   <button class="tab" data-tab="all">전체 <span class="tab-count" id="cnt-all">0</span></button>
   <button class="tab" data-tab="ott">플랫폼별</button>
+  <button class="tab" data-tab="plan">계획</button>
   <button class="tab" data-tab="stats">통계</button>
   <button class="tab" data-tab="hall">명예의전당</button>
   <button class="tab" data-tab="calendar">연대기</button>
@@ -2296,11 +2493,12 @@
 <nav class="bottomnav" id="bottomnav">
   <button class="bnav-item active" data-nav="timeline"><span class="bnav-icon">🏠</span><span class="bnav-label">홈</span></button>
   <button class="bnav-item" data-nav="all"><span class="bnav-icon">📚</span><span class="bnav-label">전체</span></button>
-  <button class="bnav-item" data-nav="ott"><span class="bnav-icon">🔖</span><span class="bnav-label">플랫폼</span></button>
+  <button class="bnav-item" data-nav="plan"><span class="bnav-icon">🗓</span><span class="bnav-label">계획</span></button>
   <button class="bnav-item" data-nav="stats"><span class="bnav-icon">📊</span><span class="bnav-label">통계</span></button>
   <button class="bnav-item" data-nav="more" id="bnavMore"><span class="bnav-icon">⋯</span><span class="bnav-label">더보기</span></button>
 </nav>
 <div class="more-menu" id="moreMenu">
+  <button class="more-menu-item" data-nav="ott">🔖 플랫폼별</button>
   <button class="more-menu-item" data-nav="hall">🏆 명예의전당</button>
   <button class="more-menu-item" data-nav="calendar">📅 연대기</button>
   <button class="more-menu-item" data-nav="settings">⚙️ 설정</button>
@@ -2341,6 +2539,25 @@
     </div>
 
     <div id="timelineList"></div>
+  </section>
+
+  <section class="view" id="view-plan">
+    <h2 class="section-title">읽기 <span>계획</span></h2>
+    <div class="section-sub">읽고 있는 작품을 날짜별로 미리 계획해요</div>
+    <div class="plan-toolbar">
+      <div class="seg-picker" id="planViewToggle">
+        <button type="button" class="seg-option active" data-pv="week">주간</button>
+        <button type="button" class="seg-option" data-pv="month">월간</button>
+      </div>
+      <button type="button" class="plan-mini-btn" onclick="planGoToday()">오늘로</button>
+    </div>
+    <div class="plan-nav">
+      <button type="button" class="plan-nav-btn" onclick="planShift(-1)" aria-label="이전">‹</button>
+      <div class="plan-nav-title" id="planNavTitle"></div>
+      <button type="button" class="plan-nav-btn" onclick="planShift(1)" aria-label="다음">›</button>
+    </div>
+    <div id="planSummary"></div>
+    <div id="planBody"></div>
   </section>
 
   <section class="view" id="view-all">
@@ -2478,7 +2695,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 40px; font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; font-weight: 500;">
-      v1.0 · 데이터는 브라우저에 저장됩니다
+      v1.1 · 데이터는 브라우저에 저장됩니다
     </div>
   </section>
 </main>
@@ -2901,9 +3118,11 @@
       <button class="modal-close" onclick="closeOttPicker()">×</button>
     </div>
     <div class="modal-body">
+      <div class="ott-picker-hint">여러 개 고를 수 있어요</div>
       <button type="button" class="ott-picker-clear" onclick="selectOtt(null)">선택 안 함</button>
       <div class="ott-picker-grid" id="ottPickerGrid"></div>
-      <button type="button" class="btn" onclick="openOttManager()" style="width: 100%; margin-top: 16px;">⚙ 플랫폼 목록 관리</button>
+      <button type="button" class="btn btn-primary" onclick="closeOttPicker()" style="width: 100%; margin-top: 16px;">완료</button>
+      <button type="button" class="btn" onclick="openOttManager()" style="width: 100%; margin-top: 8px;">⚙ 플랫폼 목록 관리</button>
     </div>
   </div>
 </div>
@@ -3003,6 +3222,93 @@
 </div>
 
 <!-- HIDDEN export render -->
+<!-- PLAN EDITOR MODAL -->
+<div class="modal" id="planEditorModal">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="planEditorTitle">계획 추가</div>
+      <button class="modal-close" onclick="closePlanEditor()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">날짜</label>
+        <input type="date" class="form-input" id="planDate">
+      </div>
+      <div class="plan-locked" id="planLockedNote" style="display: none;"></div>
+      <div class="form-group" id="planItemGroup">
+        <label class="form-label">작품</label>
+        <div class="plan-item-list" id="planItemList"></div>
+      </div>
+      <div class="form-group" id="planEpGroup" style="display: none;">
+        <div class="plan-ep-head">
+          <label class="form-label" id="planEpLabel" style="margin: 0;">읽을 회차</label>
+          <span class="plan-ep-status" id="planEpStatus"></span>
+        </div>
+        <div class="plan-quick" id="planQuick"></div>
+        <div class="plan-part-tabs" id="planPartTabs"></div>
+        <div class="episodes-grid" id="planEpGrid"></div>
+        <div class="plan-legend" id="planLegend">
+          <span><i style="background: var(--accent);"></i>고른 회차</span>
+          <span><i style="background: var(--bg-soft); border: 1px solid var(--line-soft);"></i>이미 읽음</span>
+          <span><i style="border: 1.5px dashed #e0a54a;"></i>다른 날 계획</span>
+        </div>
+        <div class="plan-range" id="planEpRange"></div>
+        <div class="plan-ep-sel" id="planEpSel"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모 <span style="font-weight: 400; color: var(--ink-mute);">— 선택 (예: 끝까지, 외전)</span></label>
+        <input type="text" class="form-input" id="planText" placeholder="회차 대신 직접 적어도 돼요" oninput="onPlanTextInput()">
+      </div>
+      <div class="plan-preview-label">이렇게 들어가요</div>
+      <div class="plan-preview empty" id="planPreview">작품을 골라주세요</div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-danger" id="planDeleteBtn" onclick="deletePlan()" style="display: none;">삭제</button>
+        <button type="button" class="btn btn-primary" onclick="savePlan()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN CHECK MODAL -->
+<div class="modal" id="planCheckModal">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">어디까지 읽었나요?</div>
+      <button class="modal-close" onclick="closePlanCheck()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="plan-check-target" id="planCheckTarget"></div>
+      <div class="plan-check-date" id="planCheckDate"></div>
+      <div class="plan-check-hint" id="planCheckHint"></div>
+      <div class="episodes-grid" id="planCheckGrid"></div>
+      <div class="plan-check-quick">
+        <button type="button" class="plan-mini-btn" onclick="planCheckAll(true)">전부 읽었어요</button>
+        <button type="button" class="plan-mini-btn" onclick="planCheckAll(false)">하나도 못 읽었어요</button>
+      </div>
+      <div class="plan-more">
+        <div class="plan-more-label" id="planCheckMoreLabel">계획보다 더 읽었나요?</div>
+        <div class="plan-more-row">
+          <button type="button" class="plan-mini-btn" id="planMore1" onclick="planCheckMore(1)">+1화</button>
+          <button type="button" class="plan-mini-btn" id="planMore3" onclick="planCheckMore(3)">+3화</button>
+          <button type="button" class="plan-mini-btn" id="planMore5" onclick="planCheckMore(5)">+5화</button>
+          <span class="plan-upto">
+            <select class="form-input part-select" id="planCheckUpToPart" onchange="planCheckSetUpTo()" style="display: none;"></select>
+            <input type="number" class="form-input" id="planCheckUpTo" min="1" inputmode="numeric" placeholder="몇 화까지" oninput="planCheckSetUpTo()">
+          </span>
+        </div>
+        <div class="plan-extra-state" id="planCheckExtraState"></div>
+      </div>
+      <div class="plan-check-preview" id="planCheckPreview"></div>
+      <div class="btn-row">
+        <button type="button" class="btn" onclick="closePlanCheck()" style="flex: 0 0 auto; padding: 13px 18px;">취소</button>
+        <button type="button" class="btn btn-primary" id="planCheckConfirm" onclick="confirmPlanCheck()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="exportRender" style="position: fixed; left: -9999px; top: 0; width: 600px; background: white; padding: 40px; font-family: 'Pretendard Variable', Pretendard, sans-serif; color: #1c1b1a;"></div>
 
 <!-- CONFIRM MODAL -->
@@ -3227,6 +3533,8 @@ let state = {
   statusFilter: 'all',
   copyDefaultProgress: true,
   timelineSort: 'updated',
+  plans: [],
+  planView: 'week',
   lastSavedAt: null,
   templateFilter: 'all',
   sortBy: 'updated',
@@ -3242,6 +3550,7 @@ let state = {
   selectedStatus: 'watching',
   selectedRating: 0,
   selectedOtt: null,
+  selectedOtts: [],
   coverThumb: null,
   lastBackupAt: null,
   changesSinceBackup: 0,
@@ -3274,8 +3583,9 @@ function load() {
         } else if (!Array.isArray(item.notes)) {
           item.notes = [];
         }
-        // Ensure ott field exists (null = no OTT)
+        // 플랫폼: 단일 → 여러 개
         if (item.ott === undefined) item.ott = null;
+        normalizeItemOtts(item);
         if (item.country === undefined) item.country = null;
         if (item.type === 'webtoon' || item.type === 'book') {
           if (!Array.isArray(item.epWatched)) item.epWatched = [];
@@ -3287,6 +3597,7 @@ function load() {
         state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
       }
       state.ottPlatforms = Array.isArray(data.ottPlatforms) ? data.ottPlatforms : [];
+      state.plans = Array.isArray(data.plans) ? data.plans.filter(p => p && p.id && p.date) : [];
       state.countries = Array.isArray(data.countries) ? data.countries : [];
       if (state.countries.length === 0) state.countries = DEFAULT_COUNTRIES.map((c, i) => ({ ...c, order: i, createdAt: Date.now() }));
       else state.countries.forEach((c, i) => { if (c.order === undefined) c.order = i; });
@@ -3304,6 +3615,7 @@ function load() {
         state.bannerDismissedAt = data.settings.bannerDismissedAt || null;
         if (data.settings.copyDefaultProgress !== undefined) state.copyDefaultProgress = data.settings.copyDefaultProgress;
         state.timelineSort = data.settings.timelineSort || 'updated';
+        state.planView = data.settings.planView === 'month' ? 'month' : 'week';
       }
     } else {
       state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
@@ -3313,6 +3625,7 @@ function load() {
   } catch(e) {
     console.error('Load failed', e);
     state.items = [];
+    state.plans = [];
     state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
     state.ottPlatforms = DEFAULT_OTT.map((o, i) => ({ ...o, order: i, createdAt: Date.now() }));
   }
@@ -3329,6 +3642,7 @@ function save(isDataChange) {
       templates: state.templates,
       ottPlatforms: state.ottPlatforms,
       countries: state.countries,
+      plans: state.plans || [],
       settings: {
         sortBy: state.sortBy,
         sortDir: state.sortDir,
@@ -3336,7 +3650,8 @@ function save(isDataChange) {
         changesSinceBackup: state.changesSinceBackup,
         bannerDismissedAt: state.bannerDismissedAt,
         copyDefaultProgress: state.copyDefaultProgress,
-        timelineSort: state.timelineSort
+        timelineSort: state.timelineSort,
+        planView: state.planView
       },
       savedAt: now
     }));
@@ -3373,13 +3688,37 @@ function getOttSorted() {
   return [...state.ottPlatforms].sort((a, b) => (a.order || 0) - (b.order || 0));
 }
 
+// 작품의 플랫폼 id 목록 (예전 단일 ott 데이터도 지원)
+function itemOttIds(item) {
+  if (!item) return [];
+  if (Array.isArray(item.otts)) return item.otts.filter(Boolean);
+  return item.ott ? [item.ott] : [];
+}
+// 실제로 존재하는 플랫폼 객체 목록 (플랫폼 목록 순서대로)
+function itemOtts(item) {
+  const ids = new Set(itemOttIds(item));
+  return getOttSorted().filter(o => ids.has(o.id));
+}
+function ottChipsHTML(item, big) {
+  const os = itemOtts(item);
+  if (!os.length) return '';
+  const st = big ? ' style="font-size: 12px; padding: 4px 10px;"' : '';
+  return os.map(o => `<span class="ott-chip"${st}><span class="ott-chip-dot" style="background: ${escapeHTML(o.color || '#9e9a93')}"></span>${escapeHTML(o.name)}</span>`).join('');
+}
+// 기존 데이터 정리: ott(단일) → otts(배열), ott는 첫 번째로 유지
+function normalizeItemOtts(item) {
+  if (!Array.isArray(item.otts)) item.otts = item.ott ? [item.ott] : [];
+  item.otts = [...new Set(item.otts.filter(Boolean))];
+  item.ott = item.otts[0] || null;
+}
+
 function getOttById(id) {
   return state.ottPlatforms.find(o => o.id === id);
 }
 
 // ============ UTILITIES ============
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-function today() { return new Date().toISOString().slice(0, 10); }
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 
 function fmtDate(d) {
   if (!d) return '';
@@ -3891,6 +4230,7 @@ function render() {
   renderStatsView();
   renderHallView();
   renderCalendarView();
+  renderPlanView();
   renderBackupStatus();
   document.getElementById('dateLabel').textContent = fmtToday();
   document.getElementById('sortBtnLabel').textContent = getSortLabel();
@@ -4004,7 +4344,7 @@ function renderOttView() {
   let html = '';
   // Each OTT group
   sortedOtt.forEach(ott => {
-    const items = sortItems(relevant.filter(i => i.ott === ott.id));
+    const items = sortItems(relevant.filter(i => itemOttIds(i).includes(ott.id)));
     if (items.length === 0) return;
     const watching = items.filter(i => i.status === 'watching').length;
     const done = items.filter(i => i.status === 'done').length;
@@ -4024,7 +4364,7 @@ function renderOttView() {
     </div>`;
   });
   // No OTT assigned
-  const noOtt = sortItems(relevant.filter(i => !i.ott || !getOttById(i.ott)));
+  const noOtt = sortItems(relevant.filter(i => itemOtts(i).length === 0));
   if (noOtt.length > 0) {
     html += `<div class="ott-group">
       <div class="ott-group-head">
@@ -4202,7 +4542,7 @@ function renderCalendarView() {
           const meta = [];
           meta.push(`<span class="card-type ${i.type}" style="padding: 1px 7px; font-size: 9px;">${typeName(i.type)}</span>`);
           if (i.rating > 0) meta.push(`<span class="card-stars" style="font-size: 11px;">${starString(i.rating)}</span>`);
-          if (i.ott) { const o = getOttById(i.ott); if (o) meta.push(`<span class="ott-chip"><span class="ott-chip-dot" style="background:${escapeHTML(o.color||'#9e9a93')}"></span>${escapeHTML(o.name)}</span>`); }
+          { const chips = ottChipsHTML(i); if (chips) meta.push(chips); }
           return `<div class="chron-item" onclick="openDetail('${i.id}')">
             <div class="chron-day">${d.getMonth()+1}.${String(d.getDate()).padStart(2,'0')} ${calendarBasis === 'start' ? '시작' : '완료'}</div>
             <div class="chron-card-title">${escapeHTML(i.title)}</div>
@@ -4229,10 +4569,7 @@ function cardHTML(item) {
   if (item.status !== 'watching') meta.push(`<span>${statusName(item.status)}</span>`);
   if (item.type === 'book' && item.platform) meta.push(`<span>${escapeHTML(item.platform)}</span>`);
   if (item.country) { const c = getCountryById(item.country); if (c) meta.push(`<span>${escapeHTML(c.name)}</span>`); }
-  if (item.ott) {
-    const ott = getOttById(item.ott);
-    if (ott) meta.push(`<span class="ott-chip"><span class="ott-chip-dot" style="background: ${escapeHTML(ott.color || '#9e9a93')}"></span>${escapeHTML(ott.name)}</span>`);
-  }
+  { const chips = ottChipsHTML(item); if (chips) meta.push(chips); }
 
   let extra = '';
   if (progress !== null && item.status === 'watching') {
@@ -4274,7 +4611,10 @@ function goTab(name) {
   const view = document.getElementById('view-' + name);
   if (view) view.classList.add('active');
   // 하단 탭바 활성 표시 (hall/calendar/settings는 더보기에 속함)
-  const navName = ['hall', 'calendar', 'settings'].includes(name) ? 'more' : name;
+  const navName = ['hall', 'calendar', 'settings', 'ott'].includes(name) ? 'more' : name;
+  const fab = document.querySelector('.fab');
+  if (fab) fab.style.display = name === 'plan' ? 'none' : '';
+  if (name === 'plan') renderPlanView();
   document.querySelectorAll('#bottomnav .bnav-item').forEach(b => b.classList.toggle('active', b.dataset.nav === navName));
   document.querySelectorAll('#moreMenu .more-menu-item').forEach(m => m.classList.toggle('active', m.dataset.nav === name));
   closeMoreMenu();
@@ -4731,7 +5071,8 @@ async function pickMetaResult(idx) {
   if (state.selectedType === 'webtoon' && r.provider) {
     const plat = state.ottPlatforms.find(p => p.name === r.provider);
     if (plat) {
-      state.selectedOtt = plat.id;
+      if (!state.selectedOtts.includes(plat.id)) state.selectedOtts.push(plat.id);
+      state.selectedOtt = state.selectedOtts[0] || null;
       updateOttSelectButton();
     }
   }
@@ -4833,6 +5174,7 @@ function resetForm() {
   state.selectedType = 'webtoon';
   state.selectedStatus = 'watching';
   state.selectedOtt = null;
+  state.selectedOtts = [];
   state.selectedCountry = null;
   state.coverThumb = null;
   state.formParts = [];
@@ -4864,7 +5206,8 @@ function fillForm(item) {
   state.selectedRating = item.rating || 0;
   state.selectedType = item.type || 'webtoon';
   state.selectedStatus = item.status || 'watching';
-  state.selectedOtt = item.ott || null;
+  state.selectedOtts = itemOttIds(item).filter(id => getOttById(id));
+  state.selectedOtt = state.selectedOtts[0] || null;
   state.selectedCountry = item.country || null;
   state.coverThumb = item.thumb || null;
   if (hasParts(item)) {
@@ -4918,7 +5261,8 @@ function saveContent(e) {
     creator: document.getElementById('fCreator').value.trim(),
     cast: document.getElementById('fCast').value.trim(),
     platform: state.selectedType === 'book' ? document.getElementById('fPlatform').value.trim() : '',
-    ott: state.selectedType === 'webtoon' ? state.selectedOtt : null,
+    otts: state.selectedType === 'webtoon' ? state.selectedOtts.filter(id => getOttById(id)) : [],
+    ott: state.selectedType === 'webtoon' ? (state.selectedOtts.filter(id => getOttById(id))[0] || null) : null,
     country: state.selectedCountry,
     link: document.getElementById('fLink').value.trim(),
     thumb: state.coverThumb || '',
@@ -4934,6 +5278,7 @@ function saveContent(e) {
     notes: existing ? (existing.notes || []) : [],
     updatedAt: Date.now()
   };
+  (state.plans || []).forEach(p => { if (p.itemId === id) { p.titleSnap = item.title; p.typeSnap = item.type; } });
   if (isEdit && existing) {
     item.createdAt = existing.createdAt || Date.now();
     state.items[state.items.findIndex(i => i.id === id)] = item;
@@ -5070,10 +5415,9 @@ function openDetail(id) {
     ${item.cast ? `<div class="detail-section"><div class="detail-label">등장인물</div><div class="detail-value">${escapeHTML(item.cast)}</div></div>` : ''}
     ${item.platform ? `<div class="detail-section"><div class="detail-label">출판사</div><div class="detail-value">${escapeHTML(item.platform)}</div></div>` : ''}
     ${(() => {
-      if (!item.ott) return '';
-      const ott = getOttById(item.ott);
-      if (!ott) return '';
-      return `<div class="detail-section"><div class="detail-label">플랫폼</div><div class="detail-value"><span class="ott-chip" style="font-size: 12px; padding: 4px 10px;"><span class="ott-chip-dot" style="background: ${escapeHTML(ott.color || '#9e9a93')}"></span>${escapeHTML(ott.name)}</span></div></div>`;
+      const chips = ottChipsHTML(item, true);
+      if (!chips) return '';
+      return `<div class="detail-section"><div class="detail-label">플랫폼</div><div class="detail-value"><span class="ott-chip-row">${chips}</span></div></div>`;
     })()}
     ${(() => { if (!item.country) return ''; const c = getCountryById(item.country); if (!c) return ''; return `<div class="detail-section"><div class="detail-label">국가</div><div class="detail-value">${escapeHTML(c.name)}</div></div>`; })()}
     ${item.rating > 0 ? `<div class="detail-section"><div class="detail-label">별점</div><div class="detail-stars">${starString(item.rating)}</div></div>` : ''}
@@ -5572,11 +5916,20 @@ document.getElementById('collageGroupPicker').addEventListener('click', (e) => {
   document.querySelectorAll('#collageGroupPicker .seg-option').forEach(o => o.classList.toggle('active', o === opt));
 });
 
+// 분류 이름 목록 — 플랫폼이 여러 개면 각 플랫폼에 모두 들어감
+function collageGroupKeys(item) {
+  if (collageGroup === 'platform' && item.type === 'webtoon') {
+    const names = itemOtts(item).map(o => o.name);
+    return names.length ? names : ['플랫폼 미지정'];
+  }
+  return [collageGroupKey(item)];
+}
+
 function collageGroupKey(item) {
   if (collageGroup === 'platform') {
     if (item.type === 'webtoon') {
-      const ott = item.ott ? getOttById(item.ott) : null;
-      return ott ? ott.name : '플랫폼 미지정';
+      const os = itemOtts(item);
+      return os.length ? os[0].name : '플랫폼 미지정';
     }
     return item.platform || '출판사 미지정';
   }
@@ -5605,10 +5958,7 @@ function itemPeriodText(item) {
 }
 
 function itemPlatformName(item) {
-  if (item.type === 'webtoon') {
-    const ott = item.ott ? getOttById(item.ott) : null;
-    return ott ? ott.name : '';
-  }
+  if (item.type === 'webtoon') return itemOtts(item).map(o => o.name).join(' · ');
   return item.platform || '';
 }
 
@@ -5644,8 +5994,7 @@ async function generateCollage() {
   } else {
     const map = {};
     items.forEach(i => {
-      const k = collageGroupKey(i);
-      (map[k] = map[k] || []).push(i);
+      collageGroupKeys(i).forEach(k => { (map[k] = map[k] || []).push(i); });
     });
     groups = Object.keys(map)
       .sort((a, b) => map[b].length - map[a].length)
@@ -6684,13 +7033,13 @@ function updateOttSelectButton() {
   const btn = document.getElementById('ottSelectBtn');
   const text = document.getElementById('ottSelectText');
   if (!btn || !text) return;
-  if (state.selectedOtt) {
-    const ott = getOttById(state.selectedOtt);
-    if (ott) {
-      text.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: ${escapeHTML(ott.color || '#9e9a93')}; display: inline-block;"></span>${escapeHTML(ott.name)}</span>`;
-      btn.classList.add('has-value');
-      return;
-    }
+  const sel = new Set(state.selectedOtts || []);
+  const os = getOttSorted().filter(o => sel.has(o.id));
+  if (os.length) {
+    text.innerHTML = `<span style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;">${os.map(o =>
+      `<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: ${escapeHTML(o.color || '#9e9a93')}; display: inline-block;"></span>${escapeHTML(o.name)}</span>`).join('')}</span>`;
+    btn.classList.add('has-value');
+    return;
   }
   text.textContent = '선택 안 함';
   btn.classList.remove('has-value');
@@ -6715,17 +7064,29 @@ function renderOttPicker() {
     return;
   }
   grid.innerHTML = sorted.map(o => `
-    <button type="button" class="ott-picker-item ${state.selectedOtt === o.id ? 'selected' : ''}" onclick="selectOtt('${o.id}')">
+    <button type="button" class="ott-picker-item ${(state.selectedOtts || []).includes(o.id) ? 'selected' : ''}" onclick="selectOtt('${o.id}')">
       <span class="ott-picker-dot" style="background: ${escapeHTML(o.color || '#9e9a93')}"></span>
       <span class="ott-picker-name">${escapeHTML(o.name)}</span>
+      ${(state.selectedOtts || []).includes(o.id) ? '<span class="ott-picker-check">✓</span>' : ''}
     </button>
   `).join('');
 }
 
+// 탭하면 켜고 끄기 (여러 개 선택), null = 전부 해제하고 닫기
 function selectOtt(id) {
-  state.selectedOtt = id;
+  if (id === null) {
+    state.selectedOtts = [];
+    state.selectedOtt = null;
+    updateOttSelectButton();
+    closeOttPicker();
+    return;
+  }
+  const list = state.selectedOtts || (state.selectedOtts = []);
+  const i = list.indexOf(id);
+  if (i >= 0) list.splice(i, 1); else list.push(id);
+  state.selectedOtt = list[0] || null;
   updateOttSelectButton();
-  closeOttPicker();
+  renderOttPicker();
 }
 
 function openOttManager() {
@@ -6863,17 +7224,23 @@ function confirmDeleteOtt(id) {
   const o = getOttById(id);
   if (!o) return;
   // Count usages
-  const usageCount = state.items.filter(it => it.ott === id).length;
+  const usageCount = state.items.filter(it => itemOttIds(it).includes(id)).length;
   document.getElementById('confirmTitle').textContent = '플랫폼을 삭제할까요?';
   document.getElementById('confirmDesc').textContent = usageCount > 0
-    ? `"${o.name}"이(가) ${usageCount}개 기록에서 사용 중입니다. 삭제하면 해당 기록의 플랫폼 정보가 비워집니다.`
+    ? `"${o.name}"이(가) ${usageCount}개 기록에서 사용 중입니다. 삭제하면 해당 기록에서 이 플랫폼만 빠집니다.`
     : `"${o.name}"이(가) 영구적으로 삭제됩니다.`;
   confirmCallback = () => {
     // Clear from items that used this OTT
-    state.items.forEach(it => { if (it.ott === id) it.ott = null; });
+    state.items.forEach(it => {
+      if (itemOttIds(it).includes(id)) {
+        it.otts = itemOttIds(it).filter(x => x !== id);
+        it.ott = it.otts[0] || null;
+      }
+    });
     state.ottPlatforms = state.ottPlatforms.filter(o => o.id !== id);
-    if (state.selectedOtt === id) {
-      state.selectedOtt = null;
+    if ((state.selectedOtts || []).includes(id)) {
+      state.selectedOtts = state.selectedOtts.filter(x => x !== id);
+      state.selectedOtt = state.selectedOtts[0] || null;
       updateOttSelectButton();
     }
     save();
@@ -7082,14 +7449,13 @@ function exportExcel() {
   try {
     // 1. Items sheet
     const itemRows = state.items.map(item => {
-      const ott = item.ott ? getOttById(item.ott) : null;
       return {
         '유형': typeName(item.type),
         '제목': item.title || '',
         '숨김': item.hidden ? 'Y' : '',
         '작가': item.creator || '',
         '등장인물': item.cast || '',
-        '플랫폼': ott ? ott.name : '',
+        '플랫폼': itemOtts(item).map(o => o.name).join(', '),
         '국가': (() => { const c = item.country ? getCountryById(item.country) : null; return c ? c.name : ''; })(),
         '출판사': item.platform || '',
         '상태': statusName(item.status),
@@ -7162,6 +7528,18 @@ function exportExcel() {
       XLSX.utils.book_append_sheet(wb, ws2, '노트');
     }
 
+    const planRows = (state.plans || []).slice().sort((a, b) => a.date.localeCompare(b.date)).map(p => ({
+      '날짜': p.date,
+      '계획': planLine(p),
+      '읽음 체크': p.done ? 'Y' : '',
+      '숨김': (planItem(p) && planItem(p).hidden) ? 'Y' : ''
+    }));
+    if (planRows.length > 0) {
+      const wsP = XLSX.utils.json_to_sheet(planRows);
+      wsP['!cols'] = [{wch:12},{wch:44},{wch:9},{wch:6}];
+      XLSX.utils.book_append_sheet(wb, wsP, '계획');
+    }
+
     const ws3 = XLSX.utils.json_to_sheet(byType);
     ws3['!cols'] = [{wch:10},{wch:8},{wch:8},{wch:8},{wch:10}];
     XLSX.utils.book_append_sheet(wb, ws3, '유형별 통계');
@@ -7200,9 +7578,10 @@ function confirmDelete(id) {
 
 function confirmClearAll() {
   document.getElementById('confirmTitle').textContent = '모든 데이터를 삭제할까요?';
-  document.getElementById('confirmDesc').textContent = `${state.items.length}개의 기록이 모두 삭제됩니다. 템플릿/플랫폼 목록도 함께 초기화됩니다.`;
+  document.getElementById('confirmDesc').textContent = `${state.items.length}개의 기록과 계획이 모두 삭제됩니다. 템플릿/플랫폼 목록도 함께 초기화됩니다.`;
   confirmCallback = () => {
     state.items = [];
+    state.plans = [];
     state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
     state.ottPlatforms = DEFAULT_OTT.map((o, i) => ({ ...o, order: i, createdAt: Date.now() }));
     save();
@@ -7219,6 +7598,7 @@ document.getElementById('confirmBtn').addEventListener('click', () => {
 
 function closeConfirm() {
   document.getElementById('confirmModal').classList.remove('active');
+  document.getElementById('confirmBtn').textContent = '삭제';
   confirmCallback = null;
 }
 
@@ -7229,8 +7609,9 @@ function exportData() {
     templates: state.templates,
     ottPlatforms: state.ottPlatforms,
     countries: state.countries,
+    plans: state.plans || [],
     exportedAt: new Date().toISOString(),
-    version: 3
+    version: 4
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -7328,15 +7709,23 @@ function importData(event) {
         document.getElementById('confirmTitle').textContent = '데이터를 가져올까요?';
         const tCount = data.templates ? data.templates.length : 0;
         const oCount = data.ottPlatforms ? data.ottPlatforms.length : 0;
-        document.getElementById('confirmDesc').textContent = `${data.items.length}개 항목, ${tCount}개 템플릿, ${oCount}개 플랫폼이 현재 기록과 합쳐집니다.`;
+        const pCount = Array.isArray(data.plans) ? data.plans.length : 0;
+        document.getElementById('confirmDesc').textContent = `${data.items.length}개 항목, ${pCount}개 계획, ${tCount}개 템플릿, ${oCount}개 플랫폼이 현재 기록과 합쳐집니다.`;
+        document.getElementById('confirmBtn').textContent = '가져오기';
         confirmCallback = () => {
           const existing = new Map(state.items.map(i => [i.id, i]));
           data.items.forEach(i => {
             if (!Array.isArray(i.notes)) i.notes = [];
             if (i.ott === undefined) i.ott = null;
+            normalizeItemOtts(i);
             existing.set(i.id, i);
           });
           state.items = [...existing.values()];
+          if (Array.isArray(data.plans)) {
+            const pExisting = new Map((state.plans || []).map(p => [p.id, p]));
+            data.plans.forEach(p => { if (p && p.id && p.date) pExisting.set(p.id, p); });
+            state.plans = [...pExisting.values()];
+          }
           if (Array.isArray(data.templates)) {
             const tExisting = new Map(state.templates.map(t => [t.id, t]));
             data.templates.forEach(t => tExisting.set(t.id, t));
@@ -7383,6 +7772,1133 @@ document.querySelectorAll('.modal').forEach(modal => {
     }
   });
 });
+
+// ============ 읽기 계획 ============
+// 계획 한 줄 = { id, date:'YYYY-MM-DD', itemId, titleSnap, typeSnap, eps:[전체 번호], text, done, carried, check }
+// 회차는 기록과 똑같이 "전체 번호"로 저장하고, 화면에서만 "2부 5화"처럼 바꿔 보여준다.
+const DOW_KO = ['일', '월', '화', '수', '목', '금', '토'];
+const PLAN_GRID_MAX = 200;
+let planAnchor = null;   // 지금 보고 있는 주/달 안의 날짜
+let planSelDay = null;   // 월간 보기에서 고른 날
+let planEdit = null;     // 계획 추가/수정 중인 내용
+let planCheck = null;    // "어디까지 읽었나요?" 진행 중인 내용
+let planSummaryCache = [];
+
+// ---------- 날짜 ----------
+function pad2(n) { return String(n).padStart(2, '0'); }
+function ymdLocal(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+function parseYmd(s) { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); }
+function addDaysYmd(s, n) { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymdLocal(d); }
+function weekStartYmd(s) { const d = parseYmd(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymdLocal(d); }
+function fmtPlanDay(s) { const d = parseYmd(s); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW_KO[d.getDay()]})`; }
+function fmtMD(s) { const d = parseYmd(s); return `${d.getMonth() + 1}/${d.getDate()}`; }
+function fmtMonthDay(s) { const d = parseYmd(s); return `${d.getMonth() + 1}월 ${d.getDate()}일`; }
+function recordDate(d) { const t = today(); return d && d <= t ? d : t; } // 미래 계획을 미리 체크해도 기록 날짜는 오늘까지
+
+// ---------- 회차 묶기 ----------
+function sortedUniq(arr) {
+  return [...new Set((arr || []).map(Number).filter(n => Number.isFinite(n) && n > 0))].sort((a, b) => a - b);
+}
+function toRanges(nums) {
+  const out = [];
+  for (const n of sortedUniq(nums)) {
+    const last = out[out.length - 1];
+    if (last && n === last[1] + 1) last[1] = n; else out.push([n, n]);
+  }
+  return out;
+}
+function rangesText(nums) { return toRanges(nums).map(([a, b]) => a === b ? `${a}` : `${a}~${b}`).join(', '); }
+function unitOf(ref) { return ref && ref.type === 'book' ? '권' : '화'; }
+
+// "3~5화" · "41~43권" · "2부 3~5화" · "1부 79~80화, 2부 1~2화"
+function epsText(ref, eps) {
+  const s = sortedUniq(eps);
+  if (!s.length) return '';
+  if (ref && hasParts(ref)) {
+    const rs = partRanges(ref).filter(r => r.total > 0);
+    const out = [];
+    rs.forEach(r => {
+      const local = s.filter(g => g >= r.start && g <= r.end).map(g => g - r.start + 1);
+      if (local.length) out.push(`${r.name} ${rangesText(local)}화`);
+    });
+    const lastEnd = rs.length ? rs[rs.length - 1].end : 0;
+    const beyond = s.filter(g => g > lastEnd);
+    if (beyond.length) out.push(`${rangesText(beyond)}화`);
+    return out.join(', ');
+  }
+  return `${rangesText(s)}${unitOf(ref)}`;
+}
+
+// 받침에 맞춰 "로/으로"
+function josaRo(str) {
+  const ch = String(str).trim().slice(-1);
+  const code = ch.charCodeAt(0);
+  if (code >= 0xAC00 && code <= 0xD7A3) {
+    const jong = (code - 0xAC00) % 28;
+    return (jong === 0 || jong === 8) ? '로' : '으로';
+  }
+  return '(으)로';
+}
+function josaNeun(str) {
+  const ch = String(str).trim().slice(-1);
+  const code = ch.charCodeAt(0);
+  if (code >= 0xAC00 && code <= 0xD7A3) return (code - 0xAC00) % 28 === 0 ? '는' : '은';
+  return '은(는)';
+}
+
+// ---------- 계획 기본 ----------
+function findPlan(id) { return (state.plans || []).find(p => p.id === id) || null; }
+function planItem(p) { return p && p.itemId ? (state.items.find(i => i.id === p.itemId) || null) : null; }
+function planRef(p) { return planItem(p) || { type: p.typeSnap || 'webtoon', title: p.titleSnap || '삭제된 작품' }; }
+function planTitle(p) { const it = planItem(p); return it ? it.title : (p.titleSnap || '삭제된 작품'); }
+function planVisible(p) { const it = planItem(p); return !(it && it.hidden); }
+function plansOn(day) {
+  return (state.plans || []).filter(p => p.date === day && planVisible(p))
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+}
+function isSkippedPlan(p) { return !!(p.done && p.check && !(p.eps || []).length && (p.check.origEps || []).length); }
+
+function planLine(p) {
+  const ref = planRef(p);
+  let line = `〈${planTitle(p)}〉`;
+  const ep = epsText(ref, isSkippedPlan(p) ? p.check.origEps : p.eps);
+  if (ep) line += ' ' + ep;
+  if (p.text) line += ' ' + p.text;
+  return line;
+}
+
+// ---------- 진행 기록 읽기/쓰기 (순차 = "N화까지", 개별 = "읽은 회차 집합") ----------
+function seenSet(item) {
+  if (item.epSeqMode !== false) {
+    const s = new Set();
+    for (let i = 1; i <= (item.currentEp || 0); i++) s.add(i);
+    return s;
+  }
+  return new Set(sortedUniq(item.epWatched));
+}
+function contiguousCount(set) { let c = 0; while (set.has(c + 1)) c++; return c; }
+function isContiguous(set) { return contiguousCount(set) === set.size; }
+function snapshotProgress(item) {
+  return {
+    currentEp: item.currentEp || 0,
+    epWatched: sortedUniq(item.epWatched),
+    epSeqMode: item.epSeqMode !== false,
+    status: item.status || 'watching',
+    startDate: item.startDate || '',
+    endDate: item.endDate || ''
+  };
+}
+function progressSig(item) { return JSON.stringify(snapshotProgress(item)); }
+function restoreProgress(item, s) {
+  item.currentEp = s.currentEp;
+  item.epWatched = [...s.epWatched];
+  item.epSeqMode = s.epSeqMode;
+  item.status = s.status;
+  item.startDate = s.startDate;
+  item.endDate = s.endDate;
+}
+// 읽은 회차 집합을 기록에 쓰기. 순차 모드인데 중간이 비면 개별 모드로 바꾼다 (건너뛴 회차가 읽은 걸로 찍히지 않게)
+function writeSeen(item, set) {
+  if (item.epSeqMode !== false && isContiguous(set)) {
+    item.currentEp = set.size;
+    return;
+  }
+  item.epSeqMode = false;
+  item.epWatched = sortedUniq([...set]);
+  item.currentEp = contiguousCount(set);
+}
+function seenLabel(item, set) {
+  const cur = contiguousCount(set);
+  let s = cur > 0 ? `${epLabel(item, cur)}까지` : '시작 전';
+  const extra = set.size - cur;
+  if (extra > 0) s += ` (+${extra}${epUnit(item)})`;
+  return s;
+}
+
+function planEpInfo(item) {
+  const total = item.totalEp > 0 ? item.totalEp : 0;
+  return {
+    total,
+    open: !total,
+    seq: item.epSeqMode !== false,
+    seen: seenSet(item),
+    unit: epUnit(item),
+    parts: hasParts(item) ? partRanges(item).filter(r => r.total > 0) : null
+  };
+}
+function planEpsValid(p, item) {
+  const s = sortedUniq(p.eps);
+  return item && item.totalEp > 0 ? s.filter(e => e <= item.totalEp) : s;
+}
+// 다른 (체크 안 한) 계획에 이미 들어간 회차
+function planEpsElsewhere(itemId, excludeId) {
+  const s = new Set();
+  (state.plans || []).forEach(p => {
+    if (p.itemId === itemId && p.id !== excludeId && !p.done) (p.eps || []).forEach(e => s.add(Number(e)));
+  });
+  return s;
+}
+// 아직 안 읽었고 다른 계획에도 없는 다음 회차 n개
+function planNextFree(info, elsewhere, n) {
+  const out = [];
+  const limit = info.total || Infinity;
+  for (let g = contiguousCount(info.seen) + 1; out.length < n && g <= limit && g < 1000000; g++) {
+    if (info.seen.has(g) || elsewhere.has(g)) continue;
+    out.push(g);
+  }
+  return out;
+}
+
+// ============ 계획 화면 ============
+function planRangeDays() {
+  if (state.planView === 'month') {
+    const a = parseYmd(planAnchor);
+    const n = new Date(a.getFullYear(), a.getMonth() + 1, 0).getDate();
+    return Array.from({ length: n }, (_, i) => ymdLocal(new Date(a.getFullYear(), a.getMonth(), i + 1)));
+  }
+  const s = weekStartYmd(planAnchor);
+  return Array.from({ length: 7 }, (_, i) => addDaysYmd(s, i));
+}
+
+function renderPlanView() {
+  const body = document.getElementById('planBody');
+  if (!body) return;
+  if (!planAnchor) planAnchor = today();
+  const t = today();
+  document.querySelectorAll('#planViewToggle .seg-option').forEach(b => b.classList.toggle('active', b.dataset.pv === state.planView));
+  const days = planRangeDays();
+  const nav = document.getElementById('planNavTitle');
+  if (state.planView === 'month') {
+    const a = parseYmd(planAnchor), tt = parseYmd(t);
+    const isThis = a.getFullYear() === tt.getFullYear() && a.getMonth() === tt.getMonth();
+    nav.innerHTML = `${a.getFullYear()}년 ${a.getMonth() + 1}월${isThis ? '<span class="plan-nav-tag">이번 달</span>' : ''}`;
+    if (!planSelDay || !days.includes(planSelDay)) planSelDay = days.includes(t) ? t : days[0];
+    renderPlanSummary(days, 'month');
+    body.innerHTML = planMonthHTML(days, t) + planDayCardHTML(planSelDay, t);
+  } else {
+    const s = days[0], e = days[6];
+    const diff = Math.round((parseYmd(s) - parseYmd(weekStartYmd(t))) / (7 * 86400000));
+    const tag = diff === 0 ? '이번 주' : diff === 1 ? '다음 주' : diff === -1 ? '지난 주' : '';
+    const sameMonth = parseYmd(s).getMonth() === parseYmd(e).getMonth();
+    nav.innerHTML = `${fmtMonthDay(s)} ~ ${sameMonth ? parseYmd(e).getDate() + '일' : fmtMonthDay(e)}${tag ? `<span class="plan-nav-tag">${tag}</span>` : ''}`;
+    renderPlanSummary(days, 'week');
+    body.innerHTML = days.map(d => planDayCardHTML(d, t)).join('');
+  }
+}
+
+function planMonthHTML(days, t) {
+  const lead = (parseYmd(days[0]).getDay() + 6) % 7; // 월요일 시작
+  let cells = '';
+  for (let i = 0; i < lead; i++) cells += '<div class="plan-cell-blank"></div>';
+  days.forEach(d => {
+    const ps = plansOn(d);
+    const undone = ps.filter(p => !p.done).length;
+    const dow = parseYmd(d).getDay();
+    const badge = ps.length ? `<span class="plan-cell-badge ${undone === 0 ? 'alldone' : ''}">${undone === 0 ? '✓' : ps.length}</span>` : '';
+    cells += `<button type="button" class="plan-cell ${d === t ? 'today' : ''} ${d === planSelDay ? 'sel' : ''} ${dow === 0 ? 'sun' : dow === 6 ? 'sat' : ''}" onclick="planSelectDay('${d}')">
+      <span class="plan-cell-num">${parseYmd(d).getDate()}</span>${badge}</button>`;
+  });
+  return `<div class="plan-cal">
+    <div class="plan-cal-head">${['월', '화', '수', '목', '금', '토', '일'].map((w, i) => `<span class="${i === 6 ? 'sun' : i === 5 ? 'sat' : ''}">${w}</span>`).join('')}</div>
+    <div class="plan-cal-grid">${cells}</div>
+  </div>`;
+}
+
+function planDayCardHTML(d, t) {
+  const ps = plansOn(d);
+  const dt = parseYmd(d), dow = dt.getDay();
+  return `<div class="plan-day ${d === t ? 'today' : ''} ${d < t ? 'past' : ''}" data-day="${d}">
+    <div class="plan-day-head">
+      <div class="plan-day-title">
+        <span class="plan-day-num">${dt.getMonth() + 1}.${dt.getDate()}</span>
+        <span class="plan-day-dow ${dow === 0 ? 'sun' : dow === 6 ? 'sat' : ''}">${DOW_KO[dow]}</span>
+        ${d === t ? '<span class="plan-today-tag">오늘</span>' : ''}
+      </div>
+      <button type="button" class="plan-add-btn" onclick="openPlanEditor('${d}')">+ 추가</button>
+    </div>
+    ${ps.length ? `<div class="plan-rows">${ps.map(planRowHTML).join('')}</div>` : ''}
+  </div>`;
+}
+
+function planRowHTML(p) {
+  return `<div class="plan-row ${p.done ? 'done' : ''}">
+    <button type="button" class="plan-check" onclick="onPlanCheck('${p.id}')" aria-label="${p.done ? '체크 취소' : '읽음 체크'}">${p.done ? '✓' : ''}</button>
+    <div class="plan-row-text" onclick="openPlanEditor('${p.date}', '${p.id}')">
+      <span class="plan-row-line">${escapeHTML(planLine(p))}</span>${planRowNotes(p)}
+    </div>
+    <button type="button" class="plan-row-copy" onclick="copyPlanItem('${p.id}')" aria-label="복사">📋</button>
+  </div>`;
+}
+
+function planRowNotes(p) {
+  const bits = [];
+  const ref = planRef(p);
+  if (p.itemId && !planItem(p)) bits.push(['', '삭제된 작품이에요']);
+  if (p.done && p.check) {
+    const c = p.check;
+    if (isSkippedPlan(p)) bits.push(['skip', '못 읽었어요']);
+    if ((c.extraEps || []).length) bits.push(['extra', `＋ 계획보다 ${c.extraEps.length}${unitOf(ref)} 더 읽었어요`]);
+    if (c.carry && (c.carry.eps || []).length) {
+      const t = findPlan(c.carry.planId);
+      const what = epsText(ref, c.carry.eps);
+      bits.push(['carry', `→ ${what}${josaNeun(what)} ${t ? fmtPlanDay(t.date) + ' 계획' : '다음 계획'}으로 넘겼어요`]);
+    }
+    if (c.madeDone) bits.push(['extra', '🎉 완독!']);
+  }
+  if (!p.done && p.carried) bits.push(['carry', '↩ 못 읽은 회차를 옮겨온 계획']);
+  return bits.map(([cls, t]) => `<span class="plan-row-note ${cls}">${escapeHTML(t)}</span>`).join('');
+}
+
+// 기간 안의 계획을 작품별로 합치기: 월 3~6화 + 화 7~18화 + 일 19화 → 〈제목〉 3~19화
+function planSummaryRows(days) {
+  const inRange = new Set(days);
+  const groups = new Map();
+  (state.plans || [])
+    .filter(p => inRange.has(p.date) && planVisible(p))
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt || 0) - (b.createdAt || 0))
+    .forEach(p => {
+      const key = p.itemId || ('snap:' + (p.titleSnap || ''));
+      if (!groups.has(key)) groups.set(key, { p0: p, eps: new Set(), texts: [], dates: [] });
+      const g = groups.get(key);
+      (p.eps || []).forEach(e => g.eps.add(Number(e)));
+      if (p.text && !g.texts.includes(p.text)) g.texts.push(p.text);
+      if (!g.dates.includes(p.date)) g.dates.push(p.date);
+    });
+  return [...groups.values()]
+    .filter(g => g.eps.size || g.texts.length)
+    .map(g => {
+      g.line = planLine({ itemId: g.p0.itemId, titleSnap: g.p0.titleSnap, typeSnap: g.p0.typeSnap, eps: [...g.eps], text: g.texts.join(', ') });
+      return g;
+    });
+}
+
+function renderPlanSummary(days, mode) {
+  const el = document.getElementById('planSummary');
+  if (!el) return;
+  planSummaryCache = planSummaryRows(days);
+  if (!planSummaryCache.length) { el.innerHTML = ''; return; }
+  const when = g => {
+    if (mode === 'week') return g.dates.map(d => DOW_KO[parseYmd(d).getDay()]).join('·');
+    if (g.dates.length === 1) return fmtPlanDay(g.dates[0]);
+    return `${fmtMD(g.dates[0])} ~ ${fmtMD(g.dates[g.dates.length - 1])} · ${g.dates.length}일`;
+  };
+  el.innerHTML = `<div class="plan-summary">
+    <div class="plan-summary-head">
+      <span class="plan-summary-title">${mode === 'week' ? '이 주' : '이 달'} 작품별</span>
+      <span class="plan-summary-hint">탭하면 그 줄만 복사돼요</span>
+    </div>
+    ${planSummaryCache.map((g, i) => `<div class="plan-sum-row" onclick="copyPlanSummary(${i})">
+      <div class="plan-sum-main">
+        <div class="plan-sum-line">${escapeHTML(g.line)}</div>
+        <div class="plan-sum-when">${escapeHTML(when(g))}</div>
+      </div>
+      <span class="plan-sum-copy">📋</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function copyPlanItem(pid) {
+  const p = findPlan(pid);
+  if (!p) return;
+  const line = planLine(p);
+  copyToClipboard(line, `복사했어요 · ${line}`);
+}
+function copyPlanSummary(i) {
+  const g = planSummaryCache[i];
+  if (!g) return;
+  copyToClipboard(g.line, `복사했어요 · ${g.line}`);
+}
+
+function setPlanView(v) {
+  state.planView = v === 'month' ? 'month' : 'week';
+  save();
+  renderPlanView();
+}
+function planShift(n) {
+  if (!planAnchor) planAnchor = today();
+  if (state.planView === 'month') {
+    const a = parseYmd(planAnchor);
+    planAnchor = ymdLocal(new Date(a.getFullYear(), a.getMonth() + n, 1));
+    planSelDay = null;
+  } else {
+    planAnchor = addDaysYmd(weekStartYmd(planAnchor), 7 * n);
+  }
+  renderPlanView();
+}
+function planGoToday() { planAnchor = today(); planSelDay = today(); renderPlanView(); }
+function planSelectDay(d) { planSelDay = d; renderPlanView(); }
+
+document.getElementById('planViewToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('.seg-option');
+  if (b) setPlanView(b.dataset.pv);
+});
+
+// ============ 계획 추가/수정 ============
+function planPickableItems() {
+  const vis = vItems();
+  const watching = vis.filter(i => i.status === 'watching').sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const wishlist = vis.filter(i => i.status === 'wishlist').sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  // 수정 중인 계획의 작품이 목록에 없으면(완료·중단 등) 맨 위에 넣어 둔다
+  if (planEdit && planEdit.itemId && !watching.some(i => i.id === planEdit.itemId) && !wishlist.some(i => i.id === planEdit.itemId)) {
+    const it = state.items.find(i => i.id === planEdit.itemId);
+    if (it) watching.unshift(it);
+  }
+  return { watching, wishlist };
+}
+
+function openPlanEditor(day, pid) {
+  const p = pid ? findPlan(pid) : null;
+  planEdit = {
+    id: p ? p.id : null,
+    date: p ? p.date : (day || today()),
+    itemId: p ? p.itemId : null,
+    eps: p ? sortedUniq(p.eps) : [],
+    text: p ? (p.text || '') : '',
+    locked: !!(p && p.done),
+    partTab: null,
+    rangeFrom: '',
+    rangeTo: ''
+  };
+  if (!p) {
+    const { watching } = planPickableItems();
+    if (watching.length === 1) planEdit.itemId = watching[0].id;
+  }
+  document.getElementById('planEditorTitle').textContent = p ? '계획 수정' : '계획 추가';
+  document.getElementById('planDate').value = planEdit.date;
+  document.getElementById('planText').value = planEdit.text;
+  document.getElementById('planDeleteBtn').style.display = p ? '' : 'none';
+  renderPlanEditor();
+  document.getElementById('planEditorModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePlanEditor() {
+  document.getElementById('planEditorModal').classList.remove('active');
+  document.body.style.overflow = '';
+  planEdit = null;
+}
+
+function planItemRowHTML(it) {
+  const cover = it.thumb
+    ? `<img src="${escapeHTML(it.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+    : (it.type === 'book' ? '📖' : '📱');
+  const sub = `${seenLabel(it, seenSet(it))} · ${it.totalEp > 0 ? `전체 ${it.totalEp}${epUnit(it)}` : '전체 미정'}`;
+  return `<button type="button" class="plan-item ${planEdit.itemId === it.id ? 'selected' : ''}" onclick="planPickItem('${it.id}')">
+    <span class="plan-item-cover">${cover}</span>
+    <span class="plan-item-info">
+      <span class="plan-item-title">${escapeHTML(it.title)}</span>
+      <span class="plan-item-sub">${escapeHTML(sub)}</span>
+    </span>
+    ${planEdit.itemId === it.id ? '<span class="plan-item-check">✓</span>' : ''}
+  </button>`;
+}
+
+function renderPlanEditor() {
+  const e = planEdit;
+  if (!e) return;
+  const lockNote = document.getElementById('planLockedNote');
+  const itemGroup = document.getElementById('planItemGroup');
+  if (e.locked) {
+    itemGroup.style.display = 'none';
+    lockNote.style.display = '';
+    lockNote.textContent = '읽음 체크한 계획이라 작품과 회차는 바꿀 수 없어요. 바꾸려면 동그라미를 눌러 체크를 먼저 취소해주세요.';
+  } else {
+    itemGroup.style.display = '';
+    lockNote.style.display = 'none';
+    const { watching, wishlist } = planPickableItems();
+    let html = '';
+    if (watching.length) html += watching.map(planItemRowHTML).join('');
+    else html += `<div class="plan-empty-hint">읽는 중인 작품이 없어요. 작품을 추가하거나 상태를 '읽는 중'으로 바꿔주세요.</div>`;
+    if (wishlist.length) html += `<div class="plan-item-group-label">읽고 싶은 작품</div>` + wishlist.map(planItemRowHTML).join('');
+    document.getElementById('planItemList').innerHTML = html;
+  }
+  renderPlanEpPicker();
+  renderPlanPreview();
+}
+
+function planPickItem(id) {
+  if (!planEdit || planEdit.locked) return;
+  if (planEdit.itemId !== id) {
+    planEdit.itemId = id;
+    planEdit.eps = [];
+    planEdit.partTab = null;
+  }
+  renderPlanEditor();
+}
+
+function planDefaultPartTab(item, info, elsewhere) {
+  const g = planEdit.eps[0] || planNextFree(info, elsewhere, 1)[0] || (contiguousCount(info.seen) + 1);
+  const r = info.parts.find(x => g >= x.start && g <= x.end) || info.parts[info.parts.length - 1];
+  return r.i;
+}
+
+// 지금 보여줄 회차 묶음 (부가 있으면 그 부, 없으면 전체)
+function planEditBlock(item, info) {
+  if (info.parts && info.parts.length) {
+    const r = info.parts.find(x => x.i === planEdit.partTab) || info.parts[0];
+    return { start: r.start, end: r.end, name: r.name };
+  }
+  return { start: 1, end: info.total || Infinity, name: '' };
+}
+
+function renderPlanEpPicker() {
+  const e = planEdit;
+  const grp = document.getElementById('planEpGroup');
+  const item = e.itemId ? state.items.find(i => i.id === e.itemId) : null;
+  if (!item || e.locked) { grp.style.display = 'none'; return; }
+  grp.style.display = '';
+  const info = planEpInfo(item);
+  const elsewhere = planEpsElsewhere(item.id, e.id);
+  document.getElementById('planEpLabel').textContent = item.type === 'book' ? '읽을 권' : '읽을 회차';
+
+  // 부 탭
+  const tabs = document.getElementById('planPartTabs');
+  if (info.parts && info.parts.length) {
+    if (e.partTab == null || !info.parts.some(r => r.i === e.partTab)) e.partTab = planDefaultPartTab(item, info, elsewhere);
+    tabs.innerHTML = info.parts.map(r => {
+      const n = e.eps.filter(g => g >= r.start && g <= r.end).length;
+      return `<button type="button" class="plan-mini-btn ${r.i === e.partTab ? 'active' : ''}" onclick="planSetPartTab(${r.i})">${escapeHTML(r.name)}${n ? ` · ${n}` : ''}</button>`;
+    }).join('');
+    tabs.style.display = '';
+  } else {
+    tabs.innerHTML = '';
+    tabs.style.display = 'none';
+  }
+
+  const block = planEditBlock(item, info);
+  const size = block.end === Infinity ? Infinity : block.end - block.start + 1;
+  const useGrid = size <= PLAN_GRID_MAX;
+
+  // 빠른 선택
+  const qs = useGrid && size <= 60 ? [1, 2, 3] : [1, 3, 5, 10];
+  document.getElementById('planQuick').innerHTML =
+    qs.map(n => `<button type="button" class="plan-mini-btn" onclick="planQuickPick(${n})">다음 ${n}${info.unit}</button>`).join('') +
+    (e.eps.length ? `<button type="button" class="plan-mini-btn ghost" onclick="planClearEps()">선택 해제</button>` : '');
+
+  // 회차 칸
+  const grid = document.getElementById('planEpGrid');
+  const legend = document.getElementById('planLegend');
+  if (useGrid) {
+    const sel = new Set(e.eps);
+    let cells = '';
+    for (let g = block.start; g <= block.end; g++) {
+      const cls = sel.has(g) ? 'plan-sel' : info.seen.has(g) ? 'plan-seen' : elsewhere.has(g) ? 'plan-else' : '';
+      cells += `<button type="button" class="ep-btn ${cls}" onclick="togglePlanEp(${g})">${g - block.start + 1}</button>`;
+    }
+    grid.innerHTML = cells;
+    grid.style.display = '';
+    legend.style.display = '';
+  } else {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    legend.style.display = 'none';
+  }
+
+  // 범위로 고르기
+  document.getElementById('planEpRange').innerHTML = `
+    <span class="plan-range-label">${useGrid ? '범위로' : '범위'}</span>
+    ${block.name ? `<span class="plan-range-part">${escapeHTML(block.name)}</span>` : ''}
+    <input type="number" class="form-input" id="planRangeFrom" min="1" inputmode="numeric" placeholder="부터" value="${escapeHTML(String(e.rangeFrom || ''))}" oninput="planEdit.rangeFrom=this.value">
+    <span>~</span>
+    <input type="number" class="form-input" id="planRangeTo" min="1" inputmode="numeric" placeholder="까지" value="${escapeHTML(String(e.rangeTo || ''))}" oninput="planEdit.rangeTo=this.value">
+    <span>${info.unit}</span>
+    <button type="button" class="plan-mini-btn" onclick="planApplyRange()">넣기</button>`;
+
+  // 선택 요약
+  const selEl = document.getElementById('planEpSel');
+  const elseTxt = elsewhere.size ? `다른 날 계획: ${epsText(item, [...elsewhere])}` : '';
+  selEl.innerHTML = (e.eps.length ? `고른 회차: <b>${escapeHTML(epsText(item, e.eps))}</b>` : (useGrid ? '' : '아직 고른 회차가 없어요')) +
+    (!useGrid && elseTxt ? `<div class="plan-ep-else">${escapeHTML(elseTxt)}</div>` : '');
+  document.getElementById('planEpStatus').textContent =
+    `${seenLabel(item, info.seen)} 읽음 · ${info.total ? `전체 ${info.total}${info.unit}` : '연재 중'}`;
+}
+
+function planSetPartTab(i) { if (!planEdit) return; planEdit.partTab = i; renderPlanEpPicker(); }
+
+function togglePlanEp(g) {
+  if (!planEdit) return;
+  const s = new Set(planEdit.eps);
+  if (s.has(g)) s.delete(g); else s.add(g);
+  planEdit.eps = sortedUniq([...s]);
+  renderPlanEpPicker();
+  renderPlanPreview();
+}
+
+function planQuickPick(n) {
+  const e = planEdit;
+  const item = e && state.items.find(i => i.id === e.itemId);
+  if (!item) return;
+  const info = planEpInfo(item);
+  const picks = planNextFree(info, planEpsElsewhere(item.id, e.id), n);
+  if (!picks.length) { showToast('남은 회차가 없어요'); return; }
+  e.eps = picks;
+  if (info.parts && info.parts.length) {
+    const r = info.parts.find(x => picks[0] >= x.start && picks[0] <= x.end);
+    if (r) e.partTab = r.i;
+  }
+  renderPlanEpPicker();
+  renderPlanPreview();
+}
+
+function planClearEps() {
+  if (!planEdit) return;
+  planEdit.eps = [];
+  renderPlanEpPicker();
+  renderPlanPreview();
+}
+
+function planApplyRange() {
+  const e = planEdit;
+  const item = e && state.items.find(i => i.id === e.itemId);
+  if (!item) return;
+  const info = planEpInfo(item);
+  const block = planEditBlock(item, info);
+  let from = parseInt(document.getElementById('planRangeFrom').value, 10);
+  let to = parseInt(document.getElementById('planRangeTo').value, 10);
+  if (isNaN(from) && isNaN(to)) { showToast('몇 화부터 몇 화까지인지 적어주세요'); return; }
+  if (isNaN(from)) from = to;
+  if (isNaN(to)) to = from;
+  if (from > to) [from, to] = [to, from];
+  if (from < 1) { showToast('1 이상으로 적어주세요'); return; }
+  let gFrom = block.start + from - 1, gTo = block.start + to - 1;
+  if (gFrom > block.end) { showToast(`${block.name ? block.name + '은 ' : ''}${block.end - block.start + 1}${info.unit}까지 있어요`); return; }
+  gTo = Math.min(gTo, block.end);
+  if (gTo - gFrom > 999) { showToast('한 번에 1000개까지 넣을 수 있어요'); return; }
+  const s = new Set(e.eps);
+  for (let g = gFrom; g <= gTo; g++) s.add(g);
+  e.eps = sortedUniq([...s]);
+  e.rangeFrom = '';
+  e.rangeTo = '';
+  renderPlanEpPicker();
+  renderPlanPreview();
+}
+
+function onPlanTextInput() {
+  if (!planEdit) return;
+  planEdit.text = document.getElementById('planText').value.trim();
+  renderPlanPreview();
+}
+
+function renderPlanPreview() {
+  const e = planEdit;
+  const el = document.getElementById('planPreview');
+  if (!e) return;
+  let line = '';
+  if (e.locked) {
+    const p = findPlan(e.id);
+    if (p) line = planLine(Object.assign({}, p, { text: e.text }));
+  } else {
+    const item = e.itemId ? state.items.find(i => i.id === e.itemId) : null;
+    if (item) line = planLine({ itemId: item.id, eps: e.eps, text: e.text });
+  }
+  el.textContent = line || '작품을 골라주세요';
+  el.classList.toggle('empty', !line);
+}
+
+function savePlan() {
+  const e = planEdit;
+  if (!e) return;
+  const date = document.getElementById('planDate').value;
+  if (!date) { showToast('날짜를 골라주세요'); return; }
+  e.text = document.getElementById('planText').value.trim();
+  const now = Date.now();
+  if (e.locked) {
+    const p = findPlan(e.id);
+    if (!p) return;
+    p.date = date;
+    p.text = e.text;
+    p.updatedAt = now;
+  } else {
+    const item = state.items.find(i => i.id === e.itemId);
+    if (!item) { showToast('작품을 골라주세요'); return; }
+    if (!e.eps.length && !e.text) { showToast('회차를 고르거나 메모를 적어주세요'); return; }
+    const p = e.id ? findPlan(e.id) : null;
+    if (p) {
+      if (p.itemId !== item.id) p.carried = false;
+      Object.assign(p, { date, itemId: item.id, titleSnap: item.title, typeSnap: item.type, eps: sortedUniq(e.eps), text: e.text, updatedAt: now });
+    } else {
+      state.plans.push({ id: uid(), date, itemId: item.id, titleSnap: item.title, typeSnap: item.type, eps: sortedUniq(e.eps), text: e.text, done: false, carried: false, createdAt: now, updatedAt: now });
+    }
+  }
+  const wasEdit = !!e.id;
+  save(true);
+  planAnchor = date;
+  if (state.planView === 'month') planSelDay = date;
+  closePlanEditor();
+  renderPlanView();
+  showToast(wasEdit ? '계획을 수정했어요' : '계획을 추가했어요');
+}
+
+function deletePlan() {
+  const e = planEdit;
+  const p = e && findPlan(e.id);
+  if (!p) return;
+  askConfirm('이 계획을 지울까요?',
+    `${planLine(p)}${p.done ? '\n읽음 체크로 남긴 진행 기록은 그대로 둬요.' : ''}`,
+    '삭제',
+    () => {
+      state.plans = state.plans.filter(x => x.id !== p.id);
+      save(true);
+      closeConfirm();
+      closePlanEditor();
+      renderPlanView();
+      showToast('계획을 지웠어요');
+    });
+}
+
+// ============ 계획 체크: 어디까지 읽었나요? ============
+function nextPlanFor(itemId, p) {
+  return (state.plans || [])
+    .filter(x => x.itemId === itemId && x.id !== p.id && !x.done &&
+      (x.date > p.date || (x.date === p.date && (x.createdAt || 0) > (p.createdAt || 0))))
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt || 0) - (b.createdAt || 0))[0] || null;
+}
+
+function onPlanCheck(pid) {
+  const p = findPlan(pid);
+  if (!p) return;
+  if (p.done) { askUncheck(p); return; }
+  const item = planItem(p);
+  const planned = item ? planEpsValid(p, item) : [];
+  if (!item || !planned.length) {
+    // 회차 없이 메모만 있는 계획, 또는 삭제된 작품: 계획에만 체크
+    p.done = true;
+    p.check = null;
+    p.checkedAt = Date.now();
+    p.updatedAt = Date.now();
+    save(true);
+    render();
+    showToast('체크했어요');
+    return;
+  }
+  planCheck = { pid, picked: [...planned], extraEnd: 0, seq: item.epSeqMode !== false };
+  const info = planEpInfo(item);
+  document.getElementById('planCheckTarget').textContent = planLine(p);
+  document.getElementById('planCheckDate').textContent = `${fmtPlanDay(p.date)} 계획`;
+  document.getElementById('planCheckMoreLabel').textContent = '계획보다 더 읽었나요?';
+  const u = info.unit;
+  [1, 3, 5].forEach(n => { document.getElementById('planMore' + n).textContent = `+${n}${u}`; });
+  const upTo = document.getElementById('planCheckUpTo');
+  upTo.value = '';
+  upTo.placeholder = `몇 ${u}까지`;
+  const partSel = document.getElementById('planCheckUpToPart');
+  if (info.parts && info.parts.length) {
+    partSel.innerHTML = info.parts.map(r => `<option value="${r.i}">${escapeHTML(r.name)}</option>`).join('');
+    const last = planned[planned.length - 1];
+    const r = info.parts.find(x => last >= x.start && last <= x.end) || info.parts[info.parts.length - 1];
+    partSel.value = String(r.i);
+    partSel.style.display = '';
+  } else {
+    partSel.innerHTML = '';
+    partSel.style.display = 'none';
+  }
+  renderPlanCheck();
+  document.getElementById('planCheckModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePlanCheck() {
+  document.getElementById('planCheckModal').classList.remove('active');
+  document.body.style.overflow = '';
+  planCheck = null;
+}
+
+function planCheckCtx() {
+  const p = planCheck && findPlan(planCheck.pid);
+  const item = p && planItem(p);
+  if (!p || !item) return null;
+  const info = planEpInfo(item);
+  const planned = planEpsValid(p, item);
+  return { p, item, info, planned, last: planned[planned.length - 1] || 0 };
+}
+
+function planExtraCap(info, last, v) {
+  let n = Math.floor(Number(v)) || 0;
+  if (info.total > 0) n = Math.min(n, info.total);
+  return Math.min(n, last + 1000);
+}
+
+// 회차 결과 계산 (저장 전 미리보기와 실제 저장이 같은 계산을 쓴다)
+function computePlanCheck(p, item, picked, extraEnd) {
+  const info = planEpInfo(item);
+  const planned = planEpsValid(p, item);
+  const last = planned[planned.length - 1] || 0;
+  const pickedSet = new Set(picked);
+  const watchedPlanned = planned.filter(e => pickedSet.has(e));
+  const extra = [];
+  if (extraEnd > last) for (let e = last + 1; e <= extraEnd; e++) extra.push(e);
+  const watched = [...watchedPlanned, ...extra];
+  const before = info.seen;
+  const after = new Set([...before, ...watched]);
+  const added = watched.filter(e => !before.has(e));
+  const leftover = planned.filter(e => !pickedSet.has(e) && !after.has(e));
+  const target = leftover.length ? nextPlanFor(item.id, p) : null;
+  const newDate = leftover.length && !target ? [addDaysYmd(p.date, 1), today()].sort().pop() : null;
+  const wset = new Set(watched);
+  const trims = (state.plans || [])
+    .filter(x => x.itemId === item.id && x.id !== p.id && !x.done)
+    .map(x => {
+      const rm = sortedUniq(x.eps).filter(e => wset.has(e));
+      const remain = sortedUniq(x.eps).filter(e => !wset.has(e));
+      return { x, rm, remain, willDelete: !remain.length && !x.text && x !== target };
+    })
+    .filter(t => t.rm.length);
+  const convert = info.seq && added.length > 0 && !isContiguous(after);
+  const becomesDone = info.total > 0 && [...after].filter(e => e <= info.total).length >= info.total && item.status !== 'done';
+  const startsReading = item.status === 'wishlist' && watched.length > 0;
+  return { info, planned, watched, extra, after, added, leftover, target, newDate, trims, convert, becomesDone, startsReading };
+}
+
+function renderPlanCheck() {
+  const ctx = planCheckCtx();
+  if (!ctx) return;
+  const { p, item, info, planned, last } = ctx;
+  const c = planCheck;
+  const picked = new Set(c.picked);
+  let html = '';
+  let curPart = null;
+  const cell = (g, cls) => {
+    const r = info.parts ? info.parts.find(x => g >= x.start && g <= x.end) : null;
+    if (info.parts && r && r !== curPart) { curPart = r; html += `<div class="plan-check-partlabel">${escapeHTML(r.name)}</div>`; }
+    html += `<button type="button" class="ep-btn ${cls}" onclick="planCheckTap(${g})">${r ? g - r.start + 1 : g}</button>`;
+  };
+  planned.forEach(g => cell(g, picked.has(g) ? 'watched' : ''));
+  const extraN = c.extraEnd > last ? c.extraEnd - last : 0;
+  if (extraN > 0 && extraN <= 60) for (let g = last + 1; g <= c.extraEnd; g++) cell(g, 'extra');
+  document.getElementById('planCheckGrid').innerHTML = html;
+  document.getElementById('planCheckHint').textContent = c.seq
+    ? '마지막으로 읽은 회차를 누르세요. 거기까지 한꺼번에 선택돼요.'
+    : '읽은 회차를 하나씩 눌러 고르세요.';
+
+  const extraEl = document.getElementById('planCheckExtraState');
+  if (extraN > 0) {
+    const ex = [];
+    for (let g = last + 1; g <= c.extraEnd; g++) ex.push(g);
+    extraEl.innerHTML = `<span>＋ ${escapeHTML(epsText(item, ex))} 더 읽었어요</span><button type="button" class="plan-mini-btn ghost" onclick="planCheckClearExtra()">지우기</button>`;
+  } else {
+    extraEl.innerHTML = '';
+  }
+
+  const r = computePlanCheck(p, item, c.picked, c.extraEnd);
+  const lines = [];
+  if (r.added.length) lines.push(`<b>${escapeHTML(epsText(item, r.added))}</b> → 진행 기록에 체크돼요`);
+  else if (r.watched.length) lines.push('고른 회차는 이미 진행 기록에 체크돼 있어요');
+  if (r.startsReading) lines.push(`'읽고 싶은 작품'에서 <b>읽는 중</b>으로 바뀌어요`);
+  if (r.convert) lines.push('중간을 건너뛰어서 진행 기록이 "개별" 체크 방식으로 바뀌어요');
+  if (r.watched.length && (r.watched.length !== planned.length || r.extra.length)) {
+    const ln = planLine({ itemId: item.id, eps: r.watched, text: p.text });
+    lines.push(`이 계획은 ${escapeHTML(ln)}${josaRo(ln)} 남아요`);
+  }
+  if (!r.watched.length) lines.push('이 계획은 "못 읽음"으로 표시돼요');
+  if (r.leftover.length) {
+    const lo = epsText(item, r.leftover);
+    if (r.target) {
+      const merged = planLine({ itemId: item.id, eps: [...r.leftover, ...r.target.eps.filter(e => !r.watched.includes(e))], text: r.target.text });
+      lines.push(`못 읽은 <b>${escapeHTML(lo)}</b> → ${fmtPlanDay(r.target.date)} 계획이 ${escapeHTML(merged)}${josaRo(merged)} 바뀌어요`);
+    } else {
+      lines.push(`못 읽은 <b>${escapeHTML(lo)}</b> → ${fmtPlanDay(r.newDate)}에 새 계획으로 넣어요`);
+    }
+  }
+  r.trims.forEach(t => {
+    const rm = epsText(item, t.rm);
+    lines.push(`${fmtPlanDay(t.x.date)} 계획의 ${escapeHTML(rm)}${josaNeun(rm)} 이미 읽은 거라 빠져요${t.willDelete ? ' (빈 계획은 지워요)' : ''}`);
+  });
+  if (r.becomesDone) lines.push('마지막까지 읽어서 <b>완독</b>으로 바뀌어요 🎉');
+  document.getElementById('planCheckPreview').innerHTML = lines.map(l => `<div>• ${l}</div>`).join('');
+
+  const btn = document.getElementById('planCheckConfirm');
+  btn.textContent = r.watched.length ? `${epsText(item, r.watched)} 읽었어요 ✓` : '못 읽었어요 (다음으로 넘기기)';
+}
+
+function planCheckTap(g) {
+  const ctx = planCheckCtx();
+  if (!ctx) return;
+  const { planned, last, info } = ctx;
+  const c = planCheck;
+  if (g > last) {
+    // 더 읽은 회차를 누르면 거기까지로
+    c.extraEnd = c.extraEnd === g ? g - 1 : g;
+    if (c.extraEnd <= last) c.extraEnd = 0;
+    c.picked = [...planned];
+    planCheckSyncUpTo(ctx);
+    renderPlanCheck();
+    return;
+  }
+  if (c.seq) {
+    const upTo = planned.filter(x => x <= g);
+    const same = c.extraEnd === 0 && c.picked.length === upTo.length && upTo.every(x => c.picked.includes(x));
+    c.picked = same ? planned.filter(x => x < g) : upTo;
+    c.extraEnd = 0;
+    document.getElementById('planCheckUpTo').value = '';
+  } else {
+    const s = new Set(c.picked);
+    if (s.has(g)) s.delete(g); else s.add(g);
+    c.picked = sortedUniq([...s]);
+  }
+  renderPlanCheck();
+}
+
+function planCheckAll(all) {
+  const ctx = planCheckCtx();
+  if (!ctx) return;
+  planCheck.picked = all ? [...ctx.planned] : [];
+  if (!all) { planCheck.extraEnd = 0; document.getElementById('planCheckUpTo').value = ''; }
+  renderPlanCheck();
+}
+
+function planCheckMore(n) {
+  const ctx = planCheckCtx();
+  if (!ctx) return;
+  const { info, planned, last } = ctx;
+  const base = planCheck.extraEnd > last ? planCheck.extraEnd : last;
+  const next = planExtraCap(info, last, base + n);
+  if (next <= base) { showToast(info.total && base >= info.total ? '마지막 회차까지 왔어요' : '더 늘릴 수 없어요'); return; }
+  planCheck.extraEnd = next;
+  planCheck.picked = [...planned]; // 더 읽었다면 계획한 건 다 읽은 것
+  planCheckSyncUpTo(ctx);
+  renderPlanCheck();
+}
+
+// "몇 화까지" 칸에 지금 값 표시 (부가 있으면 부 선택도 맞춤)
+function planCheckSyncUpTo(ctx) {
+  const input = document.getElementById('planCheckUpTo');
+  const sel = document.getElementById('planCheckUpToPart');
+  const g = planCheck.extraEnd;
+  if (!g) { input.value = ''; return; }
+  if (ctx.info.parts && ctx.info.parts.length) {
+    const r = ctx.info.parts.find(x => g >= x.start && g <= x.end) || ctx.info.parts[ctx.info.parts.length - 1];
+    sel.value = String(r.i);
+    input.value = g - r.start + 1;
+  } else {
+    input.value = g;
+  }
+}
+
+function planCheckUpToGlobal(ctx) {
+  const v = parseInt(document.getElementById('planCheckUpTo').value, 10);
+  if (isNaN(v)) return NaN;
+  if (ctx.info.parts && ctx.info.parts.length) {
+    const r = ctx.info.parts.find(x => x.i === parseInt(document.getElementById('planCheckUpToPart').value, 10));
+    if (r) return r.start - 1 + v;
+  }
+  return v;
+}
+
+function planCheckSetUpTo() {
+  const ctx = planCheckCtx();
+  if (!ctx) return;
+  const { info, planned, last } = ctx;
+  const n = planCheckUpToGlobal(ctx);
+  if (isNaN(n)) { planCheck.extraEnd = 0; renderPlanCheck(); return; }
+  if (n > last) {
+    planCheck.extraEnd = planExtraCap(info, last, n);
+    if (planCheck.extraEnd <= last) planCheck.extraEnd = 0;
+    planCheck.picked = [...planned];
+  } else {
+    planCheck.extraEnd = 0;
+    if (planCheck.seq) planCheck.picked = planned.filter(x => x <= n); // 계획 안의 숫자면 "거기까지"
+  }
+  renderPlanCheck();
+}
+
+function planCheckClearExtra() {
+  if (!planCheck) return;
+  planCheck.extraEnd = 0;
+  document.getElementById('planCheckUpTo').value = '';
+  renderPlanCheck();
+}
+
+function confirmPlanCheck() {
+  const ctx = planCheckCtx();
+  if (!ctx) { closePlanCheck(); return; }
+  const { p, item } = ctx;
+  const r = computePlanCheck(p, item, planCheck.picked, planCheck.extraEnd);
+  const now = Date.now();
+  const snap = snapshotProgress(item);
+  const origEps = sortedUniq(p.eps);
+
+  // 1) 진행 기록에 반영
+  let converted = false;
+  if (r.added.length) {
+    const wasSeq = item.epSeqMode !== false;
+    writeSeen(item, r.after);
+    converted = wasSeq && item.epSeqMode === false;
+  }
+  if (r.startsReading) {
+    item.status = 'watching';
+    if (!item.startDate) item.startDate = recordDate(p.date);
+  }
+  let madeDone = false;
+  if (r.becomesDone) {
+    item.status = 'done';
+    if (!item.endDate) item.endDate = recordDate(p.date);
+    madeDone = true;
+  }
+  item.updatedAt = now;
+
+  // 2) 다른 계획에서 이미 읽은 회차 빼기 (빈 계획은 지움)
+  const trims = [];
+  r.trims.forEach(t => {
+    const x = findPlan(t.x.id);
+    if (!x) return;
+    if (t.willDelete) {
+      trims.push({ planId: x.id, eps: [...t.rm], deleted: true, plan: JSON.parse(JSON.stringify(x)) });
+      state.plans = state.plans.filter(y => y.id !== x.id);
+    } else {
+      x.eps = sortedUniq(x.eps).filter(e => !t.rm.includes(e));
+      x.updatedAt = now;
+      trims.push({ planId: x.id, eps: [...t.rm], deleted: false });
+    }
+  });
+
+  // 3) 못 읽은 회차 → 다음 계획으로 넘기기 (없으면 새로 만듦)
+  let carry = null;
+  if (r.leftover.length) {
+    const target = r.target ? findPlan(r.target.id) : null;
+    if (target) {
+      const add = r.leftover.filter(e => !(target.eps || []).includes(e));
+      carry = { planId: target.id, eps: add, created: false, prevCarried: !!target.carried };
+      target.eps = sortedUniq([...(target.eps || []), ...r.leftover]);
+      target.carried = true;
+      target.updatedAt = now;
+    } else {
+      const np = { id: uid(), date: r.newDate, itemId: item.id, titleSnap: item.title, typeSnap: item.type, eps: [...r.leftover], text: '', done: false, carried: true, createdAt: now, updatedAt: now };
+      state.plans.push(np);
+      carry = { planId: np.id, eps: [...r.leftover], created: true };
+    }
+  }
+
+  // 4) 이 계획 체크 + 되돌리기용 기록
+  p.check = {
+    origEps,
+    watchedEps: [...r.watched],
+    addedEps: [...r.added],
+    extraEps: [...r.extra],
+    prev: snap,
+    afterSig: progressSig(item),
+    madeDone,
+    carry,
+    trims,
+    converted
+  };
+  p.eps = sortedUniq(r.watched);
+  p.done = true;
+  p.checkedAt = now;
+  p.updatedAt = now;
+  p.titleSnap = item.title;
+  p.typeSnap = item.type;
+
+  save(true);
+  closePlanCheck();
+  render();
+  const msgs = [];
+  msgs.push(r.watched.length ? `${epsText(item, r.watched)} 체크했어요` : '못 읽음으로 체크했어요');
+  if (carry && carry.eps.length) msgs.push(`${epsText(item, r.leftover)} → ${fmtMD(findPlan(carry.planId).date)}`);
+  if (trims.length) msgs.push(`다른 계획 ${trims.length}개 정리`);
+  if (converted) msgs.push('개별 체크로 바뀌었어요');
+  showToast(msgs.join(' · '));
+  if (madeDone) setTimeout(() => promptDoneReview(item.id), 350);
+}
+
+// ---------- 체크 취소: 진행 기록·넘긴 회차·정리한 계획까지 원래대로 ----------
+function askUncheck(p) {
+  if (!p.check) {
+    p.done = false;
+    delete p.checkedAt;
+    p.updatedAt = Date.now();
+    save(true);
+    render();
+    showToast('체크를 취소했어요');
+    return;
+  }
+  const c = p.check;
+  const item = planItem(p);
+  const ref = planRef(p);
+  const parts = [];
+  if (item && (c.addedEps || []).length) {
+    if (progressSig(item) === c.afterSig) {
+      const prevSet = c.prev.epSeqMode ? seenSet({ epSeqMode: true, currentEp: c.prev.currentEp }) : new Set(c.prev.epWatched);
+      parts.push(`진행 기록을 체크 전(${seenLabel(item, prevSet)})으로 되돌려요`);
+    } else {
+      parts.push(`이 계획으로 체크한 ${epsText(ref, c.addedEps)}${josaNeun(epsText(ref, c.addedEps))} 진행 기록에서 빼요`);
+    }
+  }
+  if (c.madeDone && item && item.status === 'done') parts.push('완독 처리도 취소돼요');
+  if (c.carry && (c.carry.eps || []).length) {
+    const t = findPlan(c.carry.planId);
+    if (t && !t.done) parts.push(`${fmtPlanDay(t.date)} 계획으로 넘긴 ${epsText(ref, c.carry.eps)}${josaNeun(epsText(ref, c.carry.eps))} 원래대로 돌려요`);
+  }
+  if ((c.trims || []).length) parts.push('다른 계획에서 뺀 회차를 원래대로 돌려요');
+  const back = planLine(Object.assign({}, p, { done: false, eps: c.origEps }));
+  parts.push(`이 계획은 ${back}${josaRo(back)} 돌아가요`);
+  askConfirm('읽음 체크를 취소할까요?', parts.join('\n'), '체크 취소', () => {
+    uncheckPlan(p.id);
+    closeConfirm();
+  });
+}
+
+function uncheckPlan(pid) {
+  const p = findPlan(pid);
+  if (!p || !p.done) return;
+  const c = p.check;
+  const now = Date.now();
+  if (c) {
+    const item = planItem(p);
+    // 1) 진행 기록
+    if (item) {
+      if (progressSig(item) === c.afterSig) {
+        restoreProgress(item, c.prev); // 그 사이 바뀐 게 없으면 체크 전 그대로
+      } else if ((c.addedEps || []).length) {
+        // 상세 화면 등에서 다른 회차를 체크했다면 그건 두고 이 계획으로 체크한 회차만 뺀다
+        const cur = seenSet(item);
+        c.addedEps.forEach(e => cur.delete(e));
+        writeSeen(item, cur);
+      }
+      if (c.madeDone && item.status === 'done') {
+        item.status = c.prev.status === 'done' ? 'watching' : c.prev.status;
+        item.endDate = c.prev.endDate || '';
+      }
+      item.updatedAt = now;
+    }
+    // 2) 넘긴 회차 되돌리기 (넘겨받은 계획을 이미 체크했다면 건드리지 않음)
+    if (c.carry) {
+      const t = findPlan(c.carry.planId);
+      if (t && !t.done && t.itemId === p.itemId) {
+        t.eps = sortedUniq(t.eps).filter(e => !(c.carry.eps || []).includes(e));
+        t.carried = c.carry.created ? false : !!c.carry.prevCarried;
+        t.updatedAt = now;
+        if (!t.eps.length && !t.text) state.plans = state.plans.filter(x => x.id !== t.id);
+      }
+    }
+    // 3) 다른 계획에서 뺀 회차·지운 계획 되살리기
+    (c.trims || []).forEach(t => {
+      const x = findPlan(t.planId);
+      if (t.deleted) {
+        if (!x && t.plan) state.plans.push(Object.assign({}, t.plan, { updatedAt: now }));
+      } else if (x && !x.done && x.itemId === p.itemId) {
+        x.eps = sortedUniq([...(x.eps || []), ...t.eps]);
+        x.updatedAt = now;
+      }
+    });
+    p.eps = sortedUniq(c.origEps);
+  }
+  p.done = false;
+  delete p.check;
+  delete p.checkedAt;
+  p.updatedAt = now;
+  save(true);
+  render();
+  showToast('체크를 취소했어요');
+}
+
+// 확인창 (버튼 이름을 바꿔 쓸 수 있게)
+function askConfirm(title, desc, btnLabel, cb) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmDesc').textContent = desc;
+  document.getElementById('confirmBtn').textContent = btnLabel || '삭제';
+  confirmCallback = cb;
+  document.getElementById('confirmModal').classList.add('active');
+}
 
 // ============ INIT ============
 load();
