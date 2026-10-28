@@ -2651,7 +2651,7 @@
         <button type="button" class="seg-option active" data-mode="progress">진행 상황 포함</button>
         <button type="button" class="seg-option" data-mode="title">제목만</button>
       </div>
-      <div style="font-size: 11px; color: var(--ink-mute); margin-top: 8px;">예시 — 진행 상황: <span id="copyExampleProgress">〈웹툰〉 9화~</span> · 제목만: 〈웹툰〉</div>
+      <div style="font-size: 11px; color: var(--ink-mute); margin-top: 8px;">예시 — 진행 상황: <span id="copyExampleProgress">[웹툰] 9화~</span> · 제목만: [웹툰]</div>
     </div>
 
     <div style="margin-top: 24px;">
@@ -3808,9 +3808,9 @@ function progressText(item) {
 function starString(n) { return n ? '★'.repeat(n) + '☆'.repeat(5 - n) : ''; }
 
 // ============ COPY TEXT ============
-// 제목을 괄호로 감싸기
+// 제목을 대괄호로 감싸기 (웹툰·만화책 공통: [제목])
 function bracketTitle(item) {
-  return `〈${item.title}〉`;
+  return `[${item.title}]`;
 }
 
 // 복사용 텍스트 생성. withProgress=true면 진행 상황(다음 화/권) 포함
@@ -6637,7 +6637,7 @@ function buildAllNotesText() {
     const notes = item.notes || [];
     if (notes.length === 0) return;
     const meta = [typeName(item.type), item.creator].filter(Boolean).join(' · ');
-    chunks.push(`〈${item.title}〉${meta ? ` (${meta})` : ''}\n${'─'.repeat(24)}\n${notes.map(noteToText).join('\n\n')}`);
+    chunks.push(`${bracketTitle(item)}${meta ? ` (${meta})` : ''}\n${'─'.repeat(24)}\n${notes.map(noteToText).join('\n\n')}`);
   });
   return chunks.join('\n\n\n');
 }
@@ -7807,7 +7807,10 @@ function toRanges(nums) {
   }
   return out;
 }
-function rangesText(nums) { return toRanges(nums).map(([a, b]) => a === b ? `${a}` : `${a}~${b}`).join(', '); }
+// 1개: 21 · 연속 2개: 21, 22 · 연속 3개 이상: 21~25
+function rangesText(nums) {
+  return toRanges(nums).map(([a, b]) => a === b ? `${a}` : b === a + 1 ? `${a}, ${b}` : `${a}~${b}`).join(', ');
+}
 function unitOf(ref) { return ref && ref.type === 'book' ? '권' : '화'; }
 
 // "3~5화" · "41~43권" · "2부 3~5화" · "1부 79~80화, 2부 1~2화"
@@ -7860,7 +7863,7 @@ function isSkippedPlan(p) { return !!(p.done && p.check && !(p.eps || []).length
 
 function planLine(p) {
   const ref = planRef(p);
-  let line = `〈${planTitle(p)}〉`;
+  let line = bracketTitle({ title: planTitle(p) });
   const ep = epsText(ref, isSkippedPlan(p) ? p.check.origEps : p.eps);
   if (ep) line += ' ' + ep;
   if (p.text) line += ' ' + p.text;
@@ -8049,7 +8052,7 @@ function planRowNotes(p) {
   return bits.map(([cls, t]) => `<span class="plan-row-note ${cls}">${escapeHTML(t)}</span>`).join('');
 }
 
-// 기간 안의 계획을 작품별로 합치기: 월 3~6화 + 화 7~18화 + 일 19화 → 〈제목〉 3~19화
+// 기간 안의 계획을 작품별로 합치기: 월 3~6화 + 화 7~18화 + 일 19화 → [제목] 3~19화
 function planSummaryRows(days) {
   const inRange = new Set(days);
   const groups = new Map();
