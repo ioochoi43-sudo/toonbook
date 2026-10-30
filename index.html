@@ -85,6 +85,7 @@
     transition: color 0.3s;
   }
   .save-indicator.flash { color: var(--green); }
+  .save-indicator.error { color: var(--red); font-weight: 700; }
   .save-indicator::before {
     content: '';
     width: 5px;
@@ -2118,7 +2119,7 @@
     align-items: center;
     gap: 12px;
     background: var(--accent-soft);
-    border: 1px solid #ecd9bf;
+    border: 1px solid #cfe6d3;
     border-radius: 12px;
     padding: 12px 14px;
     margin-bottom: 18px;
@@ -2134,13 +2135,13 @@
   .backup-banner-title {
     font-size: 13px;
     font-weight: 700;
-    color: #9a5a1e;
+    color: #1f6b3a;
     margin-bottom: 2px;
     letter-spacing: -0.01em;
   }
   .backup-banner-desc {
     font-size: 11px;
-    color: #b07636;
+    color: #3f7a52;
     line-height: 1.4;
   }
   .backup-banner-btn {
@@ -2164,13 +2165,24 @@
     height: 22px;
     background: none;
     border: none;
-    color: #c09b6a;
+    color: #8fb79a;
     font-size: 18px;
     cursor: pointer;
     line-height: 1;
     padding: 0;
     font-weight: 400;
   }
+
+  /* 저장 문제 / 작성 중 노트 배너 */
+  .backup-banner.alert { background: #fdecea; border-color: #f3c4bd; }
+  .backup-banner.alert .backup-banner-title { color: #a8321c; }
+  .backup-banner.alert .backup-banner-desc { color: #b5523e; }
+  .backup-banner.alert .backup-banner-btn { background: var(--red); }
+  .backup-banner.draft { background: #fff6e6; border-color: #f1d9a8; }
+  .backup-banner.draft .backup-banner-title { color: #8a5a0a; }
+  .backup-banner.draft .backup-banner-desc { color: #a8741c; }
+  .backup-banner.draft .backup-banner-btn { background: #c98a1b; }
+  .backup-banner.draft .backup-banner-close { color: #d1ac6c; }
 
   /* OTT VIEW */
   .ott-group {
@@ -2505,6 +2517,23 @@
 </div>
 
 <main>
+  <div id="saveProblemBanner" class="backup-banner alert" style="display: none;">
+    <div class="backup-banner-icon">⚠️</div>
+    <div class="backup-banner-text">
+      <div class="backup-banner-title" id="saveProblemTitle">저장이 안 되고 있어요</div>
+      <div class="backup-banner-desc" id="saveProblemDesc"></div>
+    </div>
+    <button class="backup-banner-btn" id="saveProblemBtn" onclick="exportData()">백업</button>
+  </div>
+  <div id="draftBanner" class="backup-banner draft" style="display: none;">
+    <div class="backup-banner-icon">📝</div>
+    <div class="backup-banner-text">
+      <div class="backup-banner-title">저장 안 한 노트가 있어요</div>
+      <div class="backup-banner-desc" id="draftBannerDesc"></div>
+    </div>
+    <button class="backup-banner-btn" onclick="resumeNoteDraft()">이어서 쓰기</button>
+    <button class="backup-banner-close" onclick="discardNoteDraft()" aria-label="버리기">×</button>
+  </div>
   <div id="backupBanner" class="backup-banner" style="display: none;">
     <div class="backup-banner-icon">💾</div>
     <div class="backup-banner-text">
@@ -2643,6 +2672,12 @@
         <div class="settings-desc" id="backupStatus">아직 백업 안 함</div>
       </div>
     </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">이 기기에 저장된 데이터</div>
+        <div class="settings-desc" id="storageUsage">-</div>
+      </div>
+    </div>
 
     <div style="margin-top: 24px;">
       <h3 style="font-size: 13px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.04em; margin-bottom: 10px;">복사 설정</h3>
@@ -2695,7 +2730,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 40px; font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; font-weight: 500;">
-      v1.1 · 데이터는 브라우저에 저장됩니다
+      v1.2 · 데이터는 브라우저에 저장됩니다
     </div>
   </section>
 </main>
@@ -2723,7 +2758,7 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">새 기록</div>
-      <button class="modal-close" onclick="closeAddModal()">×</button>
+      <button class="modal-close" onclick="guardedClose('addModal')">×</button>
     </div>
     <div class="modal-body">
       <form id="contentForm" onsubmit="saveContent(event)">
@@ -2888,7 +2923,7 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title" id="noteModalTitle">노트 편집</div>
-      <button class="modal-close" onclick="closeNoteModal()">×</button>
+      <button class="modal-close" onclick="guardedClose('noteModal')">×</button>
     </div>
     <div class="modal-body">
       <div id="noteItemInfo" style="margin-bottom: 14px; padding: 12px; background: var(--bg-soft); border-radius: 8px;">
@@ -2998,7 +3033,7 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title" id="templateEditorTitle">새 템플릿</div>
-      <button class="modal-close" onclick="closeTemplateEditor()">×</button>
+      <button class="modal-close" onclick="guardedClose('templateEditorModal')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="templateEditId">
@@ -3228,7 +3263,7 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <div class="modal-title" id="planEditorTitle">계획 추가</div>
-      <button class="modal-close" onclick="closePlanEditor()">×</button>
+      <button class="modal-close" onclick="guardedClose('planEditorModal')">×</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -3558,13 +3593,23 @@ let state = {
 };
 
 // ============ STORAGE ============
+// 저장 안전장치 상태
+const RESCUE_KEY = 'toonArchive_v1_rescue';
+let saveFailed = false;   // 마지막 저장이 실패했는지 (저장공간 가득 등)
+let saveBlocked = false;  // 저장된 데이터를 못 읽어서 덮어쓰지 않도록 저장을 멈춘 상태
+let loadProblemRaw = null;
+const isObj = x => x && typeof x === 'object' && !Array.isArray(x);
+
 function load() {
+  let raw = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
+      if (!isObj(data)) throw new Error('bad data');
       if (data.savedAt) state.lastSavedAt = data.savedAt;
-      state.items = Array.isArray(data.items) ? data.items : [];
+      // 깨진 항목(null 등)이 하나 있어도 나머지는 살린다
+      state.items = (Array.isArray(data.items) ? data.items : []).filter(i => isObj(i) && i.id);
       // Migrate old single-note items
       state.items.forEach(item => {
         if (typeof item.note === 'string' && !Array.isArray(item.notes)) {
@@ -3592,13 +3637,13 @@ function load() {
           if (typeof item.epSeqMode !== 'boolean') item.epSeqMode = true; // 기본은 순차 모드
         }
       });
-      state.templates = Array.isArray(data.templates) ? data.templates : [];
+      state.templates = (Array.isArray(data.templates) ? data.templates : []).filter(isObj);
       if (state.templates.length === 0) {
         state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
       }
-      state.ottPlatforms = Array.isArray(data.ottPlatforms) ? data.ottPlatforms : [];
-      state.plans = Array.isArray(data.plans) ? data.plans.filter(p => p && p.id && p.date) : [];
-      state.countries = Array.isArray(data.countries) ? data.countries : [];
+      state.ottPlatforms = (Array.isArray(data.ottPlatforms) ? data.ottPlatforms : []).filter(o => isObj(o) && o.id);
+      state.plans = Array.isArray(data.plans) ? data.plans.filter(p => isObj(p) && p.id && p.date) : [];
+      state.countries = (Array.isArray(data.countries) ? data.countries : []).filter(c => isObj(c) && c.id);
       if (state.countries.length === 0) state.countries = DEFAULT_COUNTRIES.map((c, i) => ({ ...c, order: i, createdAt: Date.now() }));
       else state.countries.forEach((c, i) => { if (c.order === undefined) c.order = i; });
       if (state.ottPlatforms.length === 0) {
@@ -3607,7 +3652,7 @@ function load() {
         // Ensure order field
         state.ottPlatforms.forEach((o, i) => { if (o.order === undefined) o.order = i; });
       }
-      if (data.settings) {
+      if (isObj(data.settings)) {
         state.sortBy = data.settings.sortBy || 'updated';
         state.sortDir = data.settings.sortDir || 'desc';
         state.lastBackupAt = data.settings.lastBackupAt || null;
@@ -3624,10 +3669,16 @@ function load() {
     }
   } catch(e) {
     console.error('Load failed', e);
+    // 원본을 지우지 않도록: 따로 보관하고, 보관이 안 되면 저장 자체를 멈춘다
+    loadProblemRaw = raw;
+    if (raw) {
+      try { localStorage.setItem(RESCUE_KEY, raw); } catch (e2) { saveBlocked = true; }
+    }
     state.items = [];
     state.plans = [];
     state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
     state.ottPlatforms = DEFAULT_OTT.map((o, i) => ({ ...o, order: i, createdAt: Date.now() }));
+    state.countries = DEFAULT_COUNTRIES.map((c, i) => ({ ...c, order: i, createdAt: Date.now() }));
   }
 }
 
@@ -3635,9 +3686,9 @@ function save(isDataChange) {
   if (isDataChange) {
     state.changesSinceBackup = (state.changesSinceBackup || 0) + 1;
   }
+  if (saveBlocked) { updateSaveProblem(); updateSaveIndicator(false); return; }
   const now = Date.now();
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+  const payload = () => JSON.stringify({
       items: state.items,
       templates: state.templates,
       ottPlatforms: state.ottPlatforms,
@@ -3654,20 +3705,95 @@ function save(isDataChange) {
         planView: state.planView
       },
       savedAt: now
-    }));
-    state.lastSavedAt = now;
-    updateSaveIndicator(true);
-  } catch(e) {
-    console.error(e);
-    showToast('저장 실패 (저장공간 가득)');
+    });
+  let ok = false;
+  try {
+    localStorage.setItem(STORAGE_KEY, payload());
+    ok = true;
+  } catch (e) {
+    // 공간이 모자라면 임시 보관물(작성 중 노트 등)을 비우고 한 번 더
+    try {
+      localStorage.removeItem(NOTE_DRAFT_KEY);
+      localStorage.setItem(STORAGE_KEY, payload());
+      ok = true;
+    } catch (e2) { console.error(e2); }
   }
+  if (ok) {
+    state.lastSavedAt = now;
+    if (saveFailed) { saveFailed = false; showToast('다시 저장됐어요'); }
+  } else {
+    saveFailed = true;
+  }
+  updateSaveIndicator(ok);
+  updateSaveProblem();
   if (isDataChange) updateBackupBanner();
+}
+
+// 저장 문제 배너 (저장 실패 / 불러오기 실패)
+function updateSaveProblem() {
+  const b = document.getElementById('saveProblemBanner');
+  if (!b) return;
+  const title = document.getElementById('saveProblemTitle');
+  const desc = document.getElementById('saveProblemDesc');
+  const btn = document.getElementById('saveProblemBtn');
+  if (loadProblemRaw && saveBlocked) {
+    title.textContent = '저장된 데이터를 읽지 못했어요';
+    desc.textContent = '기존 기록을 지우지 않으려고 저장을 멈췄어요. 원본 파일을 받아두고 문의해 주세요.';
+    btn.textContent = '원본 받기';
+    btn.onclick = downloadLoadProblemRaw;
+    b.style.display = 'flex';
+  } else if (loadProblemRaw) {
+    title.textContent = '저장된 데이터를 읽지 못했어요';
+    desc.textContent = '원본은 따로 보관해 뒀어요. 원본 파일을 받아두고, 백업 파일이 있다면 설정에서 가져와 주세요.';
+    btn.textContent = '원본 받기';
+    btn.onclick = downloadLoadProblemRaw;
+    b.style.display = 'flex';
+  } else if (saveFailed) {
+    title.textContent = '저장이 안 되고 있어요';
+    desc.textContent = '저장공간이 가득 차서 방금 바꾼 내용이 이 기기에 저장되지 않았어요. 앱을 닫기 전에 백업을 받고, 표지·노트 사진을 줄여주세요.';
+    btn.textContent = '백업';
+    btn.onclick = exportData;
+    b.style.display = 'flex';
+  } else {
+    b.style.display = 'none';
+  }
+}
+
+function downloadLoadProblemRaw() {
+  const raw = loadProblemRaw || (() => { try { return localStorage.getItem(RESCUE_KEY); } catch (e) { return null; } })();
+  if (!raw) { showToast('받을 원본이 없어요'); return; }
+  const blob = new Blob([raw], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `toon-archive-원본-${ymdLocal(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// 이 기기에 저장된 데이터 크기 (설정 화면)
+function renderStorageUsage() {
+  const el = document.getElementById('storageUsage');
+  if (!el) return;
+  let chars = 0;
+  try { chars = (localStorage.getItem(STORAGE_KEY) || '').length; } catch (e) {}
+  let photoChars = 0, photoCount = 0;
+  state.items.forEach(i => {
+    if (i.thumb && String(i.thumb).startsWith('data:')) { photoChars += i.thumb.length; photoCount++; }
+    (i.notes || []).forEach(n => (n.images || []).forEach(s => { if (String(s).startsWith('data:')) { photoChars += s.length; photoCount++; } }));
+  });
+  const mb = n => n >= 1048576 ? `${(n / 1048576).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`;
+  el.textContent = chars
+    ? `약 ${mb(chars)}${photoCount ? ` · 사진 ${photoCount}장이 ${Math.round(photoChars / Math.max(chars, 1) * 100)}%` : ''} (브라우저 저장공간은 보통 5MB 안팎이에요)`
+    : '아직 없음';
 }
 
 // 저장 시각 표시 갱신. flash=true면 잠깐 초록색
 function updateSaveIndicator(flash) {
   const el = document.getElementById('saveIndicator');
   if (!el) return;
+  el.classList.toggle('error', !!(saveFailed || saveBlocked));
+  if (saveFailed || saveBlocked) { el.textContent = '저장 안 됨'; return; }
   const ts = state.lastSavedAt;
   if (!ts) { el.textContent = ''; return; }
   const d = new Date(ts);
@@ -4232,6 +4358,7 @@ function render() {
   renderCalendarView();
   renderPlanView();
   renderBackupStatus();
+  if (state.currentTab === 'settings') renderStorageUsage();
   document.getElementById('dateLabel').textContent = fmtToday();
   document.getElementById('sortBtnLabel').textContent = getSortLabel();
 }
@@ -4615,6 +4742,7 @@ function goTab(name) {
   const fab = document.querySelector('.fab');
   if (fab) fab.style.display = name === 'plan' ? 'none' : '';
   if (name === 'plan') renderPlanView();
+  if (name === 'settings') renderStorageUsage();
   document.querySelectorAll('#bottomnav .bnav-item').forEach(b => b.classList.toggle('active', b.dataset.nav === navName));
   document.querySelectorAll('#moreMenu .more-menu-item').forEach(m => m.classList.toggle('active', m.dataset.nav === name));
   closeMoreMenu();
@@ -5081,7 +5209,10 @@ async function pickMetaResult(idx) {
   if (r.thumb) {
     state.coverThumb = r.thumb; // 우선 URL로 즉시 미리보기
     updateCoverPreview();
+    const token = formToken;
     urlToStoredThumb(r.thumb).then(stored => {
+      // 그 사이 폼을 닫았거나 표지를 바꿨으면 건드리지 않음
+      if (token !== formToken || state.coverThumb !== r.thumb) return;
       state.coverThumb = stored;
       updateCoverPreview();
     });
@@ -5089,12 +5220,16 @@ async function pickMetaResult(idx) {
 }
 
 // ============ COVER IMAGE ============
+let formToken = 0;
 async function handleCoverUpload(event) {
   const file = event.target.files[0];
   event.target.value = '';
   if (!file) return;
+  const token = formToken;
   try {
-    state.coverThumb = await fileToResizedDataURL(file, 480);
+    const img = await fileToResizedDataURL(file, 480);
+    if (token !== formToken) return;
+    state.coverThumb = img;
     updateCoverPreview();
     showToast('표지가 추가됐어요');
   } catch (e) {
@@ -5148,6 +5283,7 @@ function updateStars() {
 
 function openAddModal(id) {
   state.editingId = id || null;
+  formToken++;
   resetForm();
   if (id) {
     const item = state.items.find(i => i.id === id);
@@ -5160,11 +5296,46 @@ function openAddModal(id) {
   }
   document.getElementById('addModal').classList.add('active');
   document.body.style.overflow = 'hidden';
+  formSnaps.addModal = formSnapshot('addModal');
 }
 
 function closeAddModal() {
   document.getElementById('addModal').classList.remove('active');
   document.body.style.overflow = '';
+  formToken++;
+}
+
+// ---- 작성 중인 내용이 있으면 닫기 전에 확인 ----
+const formSnaps = {};
+function formSnapshot(id) {
+  const m = document.getElementById(id);
+  if (!m) return '';
+  const vals = [...m.querySelectorAll('input, textarea, select')]
+    .map(el => el.type === 'checkbox' || el.type === 'radio' ? (el.checked ? '1' : '0') : (el.type === 'file' ? '' : el.value));
+  let extra = '';
+  if (id === 'addModal') extra = JSON.stringify([state.selectedType, state.selectedStatus, state.selectedRating, state.selectedOtts, state.selectedCountry, state.coverThumb ? state.coverThumb.length : 0, state.formParts]);
+  if (id === 'planEditorModal' && planEdit) extra = JSON.stringify([planEdit.itemId, planEdit.eps, planEdit.text]);
+  if (id === 'templateEditorModal') extra = state.templateEditingType;
+  return vals.join('\u0001') + '\u0002' + extra;
+}
+function modalIsDirty(id) {
+  if (id === 'noteModal') return noteIsDirty();
+  return formSnaps[id] !== undefined && formSnaps[id] !== formSnapshot(id);
+}
+const GUARDED_CLOSERS = {
+  addModal: () => closeAddModal(),
+  noteModal: () => closeNoteModal(),
+  planEditorModal: () => closePlanEditor(),
+  templateEditorModal: () => closeTemplateEditor()
+};
+function guardedClose(id) {
+  const closer = GUARDED_CLOSERS[id];
+  if (!closer) return;
+  if (!modalIsDirty(id)) { closer(); return; }
+  askConfirm('작성 중인 내용이 있어요', '저장하지 않고 닫으면 지금 쓴 내용이 사라져요.', '닫기', () => {
+    closeConfirm();
+    closer();
+  });
 }
 
 function resetForm() {
@@ -5605,19 +5776,24 @@ async function handleNoteImageUpload(event) {
     return;
   }
   let ok = 0;
+  const token = noteToken;
   for (const f of files) {
     try {
-      noteEditingImages.push(await fileToResizedDataURL(f, 720));
+      const img = await fileToResizedDataURL(f, 720);
+      if (token !== noteToken) return; // 그 사이 노트를 닫았음
+      noteEditingImages.push(img);
       ok++;
     } catch (e) { /* skip */ }
   }
   renderNoteImages();
+  scheduleNoteDraft();
   showToast(ok > 0 ? `사진 ${ok}장 추가됨 (저장을 눌러야 반영돼요)` : '이미지를 읽을 수 없어요');
 }
 
 function removeNoteImage(idx) {
   noteEditingImages.splice(idx, 1);
   renderNoteImages();
+  scheduleNoteDraft();
 }
 
 function renderNoteImages() {
@@ -5698,9 +5874,9 @@ function openNoteModal(itemId, noteId) {
   state.noteEditingItemId = itemId;
   state.noteEditingNoteId = noteId;
 
-  let note;
-  if (noteId) {
-    note = (item.notes || []).find(n => n.id === noteId);
+  let note = noteId ? (item.notes || []).find(n => n.id === noteId) : null;
+  if (noteId && !note) { noteId = null; state.noteEditingNoteId = null; } // 지워진 노트면 새 노트로
+  if (note) {
     document.getElementById('noteModalTitle').textContent = '노트 편집';
   } else {
     note = { id: '', title: '', content: '', images: [] };
@@ -5714,6 +5890,15 @@ function openNoteModal(itemId, noteId) {
   document.getElementById('noteItemCreator').textContent = item.creator || '';
   document.getElementById('noteTitleInput').value = note.title || '';
   document.getElementById('noteContent').value = note.content || '';
+  noteToken++;
+  noteOriginal = { title: note.title || '', content: note.content || '', images: noteEditingImages.join('|') };
+  // 저장 안 한 작성 내용이 있으면 이어서
+  const draft = readNoteDraft();
+  if (draft && draft.itemId === itemId && (draft.noteId || null) === (noteId || null)) {
+    document.getElementById('noteTitleInput').value = draft.title || '';
+    document.getElementById('noteContent').value = draft.content || '';
+    setTimeout(() => showToast(draft.moreImages ? '저장 안 한 내용을 불러왔어요 (새로 넣은 사진은 다시 넣어주세요)' : '저장 안 한 내용을 불러왔어요'), 250);
+  }
 
   // Populate templates for this type
   const pills = document.getElementById('templatePills');
@@ -5736,7 +5921,84 @@ function closeNoteModal() {
   document.body.style.overflow = '';
   state.noteEditingItemId = null;
   state.noteEditingNoteId = null;
+  noteToken++;
+  clearNoteDraft();
 }
+
+// ============ 노트 임시 저장 (앱이 꺼지거나 새로고침돼도 쓰던 내용 보존) ============
+const NOTE_DRAFT_KEY = 'toonArchive_noteDraft';
+let noteDraftTimer = null;
+let noteOriginal = null;
+let noteToken = 0;
+
+function noteIsDirty() {
+  if (!noteOriginal || !document.getElementById('noteModal').classList.contains('active')) return false;
+  return document.getElementById('noteTitleInput').value !== noteOriginal.title ||
+    document.getElementById('noteContent').value !== noteOriginal.content ||
+    noteEditingImages.join('|') !== noteOriginal.images;
+}
+function readNoteDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(NOTE_DRAFT_KEY) || 'null');
+    return d && d.itemId ? d : null;
+  } catch (e) { return null; }
+}
+function scheduleNoteDraft() {
+  clearTimeout(noteDraftTimer);
+  noteDraftTimer = setTimeout(writeNoteDraft, 400);
+}
+function writeNoteDraft() {
+  clearTimeout(noteDraftTimer);
+  if (!state.noteEditingItemId || !document.getElementById('noteModal').classList.contains('active')) return;
+  if (!noteIsDirty()) { try { localStorage.removeItem(NOTE_DRAFT_KEY); } catch (e) {} return; }
+  // 글만 보관 (사진까지 넣으면 저장공간을 많이 차지해서 본 데이터 저장을 방해할 수 있음)
+  const draft = {
+    itemId: state.noteEditingItemId,
+    noteId: state.noteEditingNoteId || null,
+    title: document.getElementById('noteTitleInput').value,
+    content: document.getElementById('noteContent').value,
+    moreImages: noteEditingImages.join('|') !== (noteOriginal ? noteOriginal.images : ''),
+    ts: Date.now()
+  };
+  try { localStorage.setItem(NOTE_DRAFT_KEY, JSON.stringify(draft)); } catch (e) {}
+}
+function clearNoteDraft() {
+  clearTimeout(noteDraftTimer);
+  try { localStorage.removeItem(NOTE_DRAFT_KEY); } catch (e) {}
+  updateDraftBanner();
+}
+function updateDraftBanner() {
+  const b = document.getElementById('draftBanner');
+  if (!b) return;
+  const d = readNoteDraft();
+  const item = d ? state.items.find(i => i.id === d.itemId) : null;
+  if (d && !item) { try { localStorage.removeItem(NOTE_DRAFT_KEY); } catch (e) {} }
+  const editingNow = document.getElementById('noteModal').classList.contains('active');
+  if (d && item && !editingNow) {
+    document.getElementById('draftBannerDesc').textContent = `${bracketTitle(item)} ${d.title ? `"${d.title}"` : '새 노트'} · ${fmtDateTime(d.ts)}에 쓰던 내용`;
+    b.style.display = 'flex';
+  } else {
+    b.style.display = 'none';
+  }
+}
+function resumeNoteDraft() {
+  const d = readNoteDraft();
+  if (!d) { updateDraftBanner(); return; }
+  document.getElementById('draftBanner').style.display = 'none';
+  openNoteModal(d.itemId, d.noteId);
+}
+function discardNoteDraft() {
+  askConfirm('쓰던 노트를 버릴까요?', '저장하지 않은 내용이 지워져요.', '버리기', () => {
+    clearNoteDraft();
+    closeConfirm();
+    showToast('버렸어요');
+  });
+}
+document.getElementById('noteTitleInput').addEventListener('input', scheduleNoteDraft);
+document.getElementById('noteContent').addEventListener('input', scheduleNoteDraft);
+// 다른 앱으로 넘어가거나 창을 닫을 때 바로 보관
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') writeNoteDraft(); });
+window.addEventListener('pagehide', writeNoteDraft);
 
 function setNoteMode(mode) {
   document.querySelectorAll('#previewToggle button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
@@ -5764,6 +6026,7 @@ function insertTemplate(templateId) {
   const ta = document.getElementById('noteContent');
   ta.value = ta.value.trim() ? ta.value + '\n\n' + tmpl.content : tmpl.content;
   ta.focus();
+  scheduleNoteDraft();
   showToast(`"${tmpl.name}" 삽입됨`);
 }
 
@@ -5780,6 +6043,7 @@ function wrapSel(before, after) {
   } else {
     ta.setSelectionRange(start + before.length, start + before.length);
   }
+  scheduleNoteDraft();
 }
 
 function insertLine(prefix) {
@@ -5791,6 +6055,7 @@ function insertLine(prefix) {
   ta.value = text.substring(0, lineStart) + prefix + text.substring(lineStart);
   ta.focus();
   ta.setSelectionRange(start + prefix.length, start + prefix.length);
+  scheduleNoteDraft();
 }
 
 function insertText(text) {
@@ -5799,6 +6064,7 @@ function insertText(text) {
   ta.value = ta.value.substring(0, start) + text + ta.value.substring(start);
   ta.focus();
   ta.setSelectionRange(start + text.length, start + text.length);
+  scheduleNoteDraft();
 }
 
 function saveNote() {
@@ -6006,7 +6272,7 @@ async function generateCollage() {
   try {
     const canvas = await renderCollageToCanvas(groups, typeLabel, statusLabel, items.length);
     closeCollageModal();
-    await saveCanvasImage(canvas, `toon-collection-${new Date().toISOString().slice(0,10)}.png`);
+    await saveCanvasImage(canvas, `toon-collection-${ymdLocal(new Date())}.png`);
   } catch (e) {
     console.error(e);
     showToast(exportErrorMessage(e));
@@ -6648,7 +6914,7 @@ function exportAllNotesTxt() {
   const blob = new Blob(['\ufeff' + text], { type: 'text/plain;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `toon-notes-${new Date().toISOString().slice(0, 10)}.txt`;
+  a.download = `toon-notes-${ymdLocal(new Date())}.txt`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -6976,6 +7242,7 @@ function openTemplateEditor(id) {
   }
   document.querySelectorAll('#templateTypePicker .type-option').forEach(o => o.classList.toggle('active', o.dataset.type === state.templateEditingType));
   document.getElementById('templateEditorModal').classList.add('active');
+  formSnaps.templateEditorModal = formSnapshot('templateEditorModal');
 }
 
 function closeTemplateEditor() {
@@ -7469,8 +7736,8 @@ function exportExcel() {
         '한줄 메모': item.memo || '',
         '노트 개수': (item.notes || []).length,
         '링크': item.link || '',
-        '등록일': item.createdAt ? new Date(item.createdAt).toISOString().slice(0,10) : '',
-        '최종 수정': item.updatedAt ? new Date(item.updatedAt).toISOString().slice(0,10) : ''
+        '등록일': item.createdAt ? ymdLocal(new Date(item.createdAt)) : '',
+        '최종 수정': item.updatedAt ? ymdLocal(new Date(item.updatedAt)) : ''
       };
     });
 
@@ -7484,8 +7751,8 @@ function exportExcel() {
           '노트 제목': note.title || '제목 없음',
           '노트 내용': note.content || '',
           '사진 수': (note.images || []).length,
-          '작성일': note.createdAt ? new Date(note.createdAt).toISOString().slice(0,10) : '',
-          '수정일': note.updatedAt ? new Date(note.updatedAt).toISOString().slice(0,10) : ''
+          '작성일': note.createdAt ? ymdLocal(new Date(note.createdAt)) : '',
+          '수정일': note.updatedAt ? ymdLocal(new Date(note.updatedAt)) : ''
         });
       });
     });
@@ -7548,7 +7815,7 @@ function exportExcel() {
     ws4['!cols'] = [{wch:14},{wch:12}];
     XLSX.utils.book_append_sheet(wb, ws4, '전체 통계');
 
-    const fname = `toon-archive-${new Date().toISOString().slice(0,10)}.xlsx`;
+    const fname = `toon-archive-${ymdLocal(new Date())}.xlsx`;
     XLSX.writeFile(wb, fname);
     showToast('엑셀 파일이 다운로드됩니다');
   } catch(e) {
@@ -7578,12 +7845,14 @@ function confirmDelete(id) {
 
 function confirmClearAll() {
   document.getElementById('confirmTitle').textContent = '모든 데이터를 삭제할까요?';
-  document.getElementById('confirmDesc').textContent = `${state.items.length}개의 기록과 계획이 모두 삭제됩니다. 템플릿/플랫폼 목록도 함께 초기화됩니다.`;
+  document.getElementById('confirmDesc').textContent = `${state.items.length}개의 기록과 계획이 모두 삭제됩니다. 템플릿·플랫폼·국가 목록도 함께 초기화됩니다.`;
   confirmCallback = () => {
     state.items = [];
     state.plans = [];
     state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
     state.ottPlatforms = DEFAULT_OTT.map((o, i) => ({ ...o, order: i, createdAt: Date.now() }));
+    state.countries = DEFAULT_COUNTRIES.map((c, i) => ({ ...c, order: i, createdAt: Date.now() }));
+    clearNoteDraft();
     save();
     render();
     closeConfirm();
@@ -7617,7 +7886,7 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `toon-archive-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `toon-archive-${ymdLocal(new Date())}.json`;
   a.click();
   URL.revokeObjectURL(url);
   // Reset backup tracking
@@ -7692,7 +7961,7 @@ function renderBackupStatus() {
     el.textContent = '아직 백업 안 함';
   } else {
     const days = Math.floor((Date.now() - state.lastBackupAt) / 86400000);
-    const dateStr = fmtDate(new Date(state.lastBackupAt).toISOString().slice(0,10));
+    const dateStr = fmtDate(ymdLocal(new Date(state.lastBackupAt)));
     if (days === 0) el.textContent = `오늘 (${dateStr})`;
     else el.textContent = `${days}일 전 (${dateStr})`;
   }
@@ -7714,7 +7983,7 @@ function importData(event) {
         document.getElementById('confirmBtn').textContent = '가져오기';
         confirmCallback = () => {
           const existing = new Map(state.items.map(i => [i.id, i]));
-          data.items.forEach(i => {
+          data.items.filter(i => isObj(i) && i.id).forEach(i => {
             if (!Array.isArray(i.notes)) i.notes = [];
             if (i.ott === undefined) i.ott = null;
             normalizeItemOtts(i);
@@ -7723,26 +7992,27 @@ function importData(event) {
           state.items = [...existing.values()];
           if (Array.isArray(data.plans)) {
             const pExisting = new Map((state.plans || []).map(p => [p.id, p]));
-            data.plans.forEach(p => { if (p && p.id && p.date) pExisting.set(p.id, p); });
+            data.plans.forEach(p => { if (isObj(p) && p.id && p.date) pExisting.set(p.id, p); });
             state.plans = [...pExisting.values()];
           }
           if (Array.isArray(data.templates)) {
             const tExisting = new Map(state.templates.map(t => [t.id, t]));
-            data.templates.forEach(t => tExisting.set(t.id, t));
+            data.templates.filter(isObj).forEach(t => tExisting.set(t.id, t));
             state.templates = [...tExisting.values()];
           }
           if (Array.isArray(data.ottPlatforms)) {
             const oExisting = new Map(state.ottPlatforms.map(o => [o.id, o]));
-            data.ottPlatforms.forEach(o => oExisting.set(o.id, o));
+            data.ottPlatforms.filter(o => isObj(o) && o.id).forEach(o => oExisting.set(o.id, o));
             state.ottPlatforms = [...oExisting.values()];
             getOttSorted().forEach((o, i) => { o.order = i; });
           }
           if (Array.isArray(data.countries)) {
             const cExisting = new Map(state.countries.map(c => [c.id, c]));
-            data.countries.forEach(c => cExisting.set(c.id, c));
+            data.countries.filter(c => isObj(c) && c.id).forEach(c => cExisting.set(c.id, c));
             state.countries = [...cExisting.values()];
             getCountrySorted().forEach((c, i) => { c.order = i; });
           }
+          if (loadProblemRaw) { loadProblemRaw = null; saveBlocked = false; }
           save();
           // 가져오기는 백업본이 존재한다는 의미 → 백업 추적 리셋
           state.lastBackupAt = Date.now();
@@ -7766,11 +8036,37 @@ function importData(event) {
 document.querySelectorAll('.modal').forEach(modal => {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
-      if (modal.id === 'confirmModal') return;
+      if (modal.id === 'confirmModal' || modal.id === 'doneReviewModal') return;
+      if (GUARDED_CLOSERS[modal.id]) { guardedClose(modal.id); return; }
       modal.classList.remove('active');
       document.body.style.overflow = '';
     }
   });
+});
+
+// ============ 여러 창(탭) 동기화 ============
+// 다른 창에서 저장하면 이 창의 데이터를 새로 읽어서, 예전 상태로 덮어쓰지 않게 한다
+function reloadFromStorage(msg) {
+  if (saveBlocked || loadProblemRaw) return;
+  load();
+  render();
+  syncCopyDefaultPicker();
+  syncTimelineSortPicker();
+  updateSaveIndicator(false);
+  updateBackupBanner();
+  updateDraftBanner();
+  if (msg) showToast(msg);
+}
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY && e.newValue) reloadFromStorage('다른 창에서 바뀐 내용을 불러왔어요');
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const savedAt = raw ? (JSON.parse(raw).savedAt || 0) : 0;
+    if (savedAt > (state.lastSavedAt || 0)) reloadFromStorage('다른 창에서 바뀐 내용을 불러왔어요');
+  } catch (e) {}
 });
 
 // ============ 읽기 계획 ============
@@ -8173,6 +8469,7 @@ function openPlanEditor(day, pid) {
   renderPlanEditor();
   document.getElementById('planEditorModal').classList.add('active');
   document.body.style.overflow = 'hidden';
+  formSnaps.planEditorModal = formSnapshot('planEditorModal');
 }
 
 function closePlanEditor() {
@@ -8906,6 +9203,8 @@ function askConfirm(title, desc, btnLabel, cb) {
 // ============ INIT ============
 load();
 render();
+updateSaveProblem();
+updateDraftBanner();
 updateBackupBanner();
 renderBackupStatus();
 updateSaveIndicator(false);
