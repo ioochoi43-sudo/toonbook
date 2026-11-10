@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5faf6"/>
+      <stop offset="1" stop-color="#dcefe0"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#1f4a2c" flood-opacity="0.20"/>
+    </filter>
+    <clipPath id="bookClip"><rect x="280" y="295" width="300" height="390" rx="18"/></clipPath>
+    <clipPath id="screenClip"><rect x="504" y="307" width="216" height="416" rx="32"/></clipPath>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="11" cy="11" r="4.5" fill="#ffffff" fill-opacity="0.18"/>
+    </pattern>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="330" fill="#ffffff" fill-opacity="0.55"/>
+
+  <!-- 종이 만화책 -->
+  <g transform="rotate(-9 430 490)" filter="url(#sh)">
+    <!-- 책장(페이지 두께) -->
+    <rect x="292" y="311" width="300" height="392" rx="18" fill="#fffdf6" stroke="#d3e3d6" stroke-width="3"/>
+    <line x1="300" y1="694" x2="580" y2="694" stroke="#e1ebe2" stroke-width="3"/>
+    <!-- 표지 -->
+    <g clip-path="url(#bookClip)">
+      <rect x="280" y="295" width="300" height="390" fill="#2f8a4c"/>
+      <rect x="330" y="612" width="154" height="66" fill="url(#dots)"/>
+      <rect x="280" y="295" width="28" height="390" fill="#24713c"/>
+    </g>
+    <rect x="334" y="334" width="206" height="54" rx="12" fill="#ffffff"/>
+    <rect x="356" y="354" width="120" height="14" rx="7" fill="#9fd1ac"/>
+    <!-- 말풍선 -->
+    <g transform="translate(412 492) scale(0.84) translate(-444 -508)">
+    <path d="M444 438 c58 0 98 30 98 70 s-40 70 -98 70 c-14 0 -27 -2 -39 -5 l-40 22 l12 -36 c-20 -13 -31 -31 -31 -51 c0 -40 40 -70 98 -70 z" fill="#ffffff"/>
+    <circle cx="410" cy="508" r="10" fill="#2f8a4c"/>
+    <circle cx="444" cy="508" r="10" fill="#2f8a4c"/>
+    <circle cx="478" cy="508" r="10" fill="#2f8a4c"/>
+    </g>
+  </g>
+
+  <!-- 웹툰(휴대폰) -->
+  <g transform="rotate(8 612 515)" filter="url(#sh)">
+    <rect x="492" y="295" width="240" height="440" rx="44" fill="#1f2c23"/>
+    <rect x="504" y="307" width="216" height="416" rx="32" fill="#ffffff"/>
+    <g clip-path="url(#screenClip)">
+      <!-- 세로로 이어지는 컷 -->
+      <rect x="520" y="296" width="184" height="58" rx="10" fill="#e0f0e2"/>
+      <rect x="520" y="368" width="184" height="128" rx="10" fill="#cfe8d4"/>
+      <circle cx="660" cy="404" r="16" fill="#ffffff"/>
+      <path d="M520 470 l52 -46 l40 32 l30 -22 l62 50 v12 h-184 z" fill="#8fc79c"/>
+      <rect x="520" y="510" width="184" height="128" rx="10" fill="#2f8a4c"/>
+      <ellipse cx="582" cy="562" rx="40" ry="26" fill="#ffffff"/>
+      <path d="M572 584 l-8 18 l22 -14 z" fill="#ffffff"/>
+      <rect x="520" y="652" width="184" height="100" rx="10" fill="#e0f0e2"/>
+    </g>
+    <rect x="582" y="319" width="60" height="18" rx="9" fill="#1f2c23"/>
+  </g>
+</svg>
