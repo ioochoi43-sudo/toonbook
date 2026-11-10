@@ -38,7 +38,7 @@
 
     <rect id="bookShape" x="262" y="300" width="304" height="396" rx="44"/>
     <clipPath id="bookClip"><use xlink:href="#bookShape"/></clipPath>
-    <rect id="phoneShape" x="474" y="282" width="268" height="476" rx="60" transform="rotate(8 608 520)"/>
+    <rect id="phoneShape" x="440.0" y="282" width="268" height="476" rx="60" transform="rotate(8 574.0 520)"/>
     <clipPath id="phoneClip"><use xlink:href="#phoneShape"/></clipPath>
 
     <!-- 뒤쪽: 종이 만화책 -->
@@ -48,43 +48,45 @@
       <g clip-path="url(#bookClip)">
         <rect x="262" y="300" width="50" height="396" fill="#1ea65a" fill-opacity="0.22"/>
       </g>
-      <!-- 말풍선 -->
-      <g transform="translate(398 486) scale(0.80) translate(-408 -490)"><path d="M408 418 c56 0 96 31 96 72 s-40 72 -96 72 c-13 0 -26 -2 -37 -5 l-44 24 l14 -40 c-18 -13 -29 -31 -29 -51 c0 -41 40 -72 96 -72 z" fill="url(#lime)"/></g>
+      <!-- 말풍선: 책 표지 가운데. 오른쪽은 휴대폰에 가려진다 -->
+      <g transform="translate(438 496) scale(0.96) translate(-408 -490)">
+        <path d="M408 418 c56 0 96 31 96 72 s-40 72 -96 72 c-13 0 -26 -2 -37 -5 l-44 24 l14 -40 c-18 -13 -29 -31 -29 -51 c0 -41 40 -72 96 -72 z" fill="url(#lime)"/>
+      </g>
     </g>
   </defs>
 
   <rect width="1024" height="1024" fill="url(#bg)"/>
   <rect width="1024" height="1024" fill="url(#glow)"/>
 
-  <g transform="translate(512 518) scale(1.1) translate(-506 -520)">
-  <!-- 책 그림자 + 책 -->
-  <g transform="rotate(-10 414 498) translate(0 22)" opacity="0.28" filter="url(#softShadow)">
-    <use xlink:href="#bookShape" fill="#0b6b36"/>
-  </g>
-  <use xlink:href="#book"/>
-
-  <!-- 휴대폰 그림자 -->
-  <g transform="translate(-6 20)" opacity="0.30" filter="url(#softShadow)">
-    <use xlink:href="#phoneShape" fill="#0b6b36"/>
-  </g>
-
-  <!-- 앞쪽: 웹툰 휴대폰(반투명 유리) -->
-  <g clip-path="url(#phoneClip)">
-    <g filter="url(#frost)">
-      <rect x="-100" y="-100" width="1224" height="1224" fill="url(#bg)"/>
-      <use xlink:href="#book"/>
+  <g id="art" transform="translate(512 512) scale(1.345) translate(-484.87 -520)">
+    <!-- 책 그림자 + 책 -->
+    <g transform="rotate(-10 414 498) translate(0 22)" opacity="0.28" filter="url(#softShadow)">
+      <use xlink:href="#bookShape" fill="#0b6b36"/>
     </g>
-  </g>
-  <use xlink:href="#phoneShape" fill="url(#glassFill)"/>
-  <use xlink:href="#phoneShape" fill="none" stroke="url(#glassEdge)" stroke-width="6"/>
+    <use id="bookUse" xlink:href="#book"/>
 
-  <!-- 세로로 이어지는 웹툰 컷 -->
-  <g transform="rotate(8 608 520)">
-    <rect x="506" y="338" width="204" height="150" rx="30" fill="#ffffff" fill-opacity="0.95"/>
-    <circle cx="660" cy="384" r="20" fill="url(#lime)"/>
-    <rect x="506" y="508" width="204" height="150" rx="30" fill="url(#panelGreen)"/>
-    <path d="M580 546 c30 0 52 16 52 37 s-22 37 -52 37 c-7 0 -14 -1 -20 -3 l-22 12 l7 -20 c-10 -7 -17 -16 -17 -26 c0 -21 22 -37 52 -37 z" fill="#ffffff"/>
-    <rect x="506" y="678" width="204" height="44" rx="22" fill="#ffffff" fill-opacity="0.6"/>
-  </g>
+    <!-- 휴대폰 그림자 -->
+    <g transform="translate(-6 20)" opacity="0.30" filter="url(#softShadow)">
+      <use xlink:href="#phoneShape" fill="#0b6b36"/>
+    </g>
+
+    <!-- 앞쪽: 웹툰 휴대폰(반투명 유리) -->
+    <g clip-path="url(#phoneClip)">
+      <g filter="url(#frost)">
+        <rect x="-200" y="-200" width="1424" height="1424" fill="url(#bg)"/>
+        <use xlink:href="#book"/>
+      </g>
+    </g>
+    <use id="phoneUse" xlink:href="#phoneShape" fill="url(#glassFill)"/>
+    <use xlink:href="#phoneShape" fill="none" stroke="url(#glassEdge)" stroke-width="6"/>
+
+    <!-- 세로로 이어지는 웹툰 컷 -->
+    <g transform="rotate(8 574.0 520)">
+      <rect x="472.0" y="338" width="204" height="150" rx="30" fill="#ffffff" fill-opacity="0.95"/>
+      <circle cx="626.0" cy="384" r="20" fill="url(#lime)"/>
+      <rect x="472.0" y="508" width="204" height="150" rx="30" fill="url(#panelGreen)"/>
+      <path d="M546.0 546 c30 0 52 16 52 37 s-22 37 -52 37 c-7 0 -14 -1 -20 -3 l-22 12 l7 -20 c-10 -7 -17 -16 -17 -26 c0 -21 22 -37 52 -37 z" fill="#ffffff"/>
+      <rect x="472.0" y="678" width="204" height="44" rx="22" fill="#ffffff" fill-opacity="0.6"/>
+    </g>
   </g>
 </svg>
