@@ -261,6 +261,26 @@
   .banner-card-title { font-size: 15.5px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
   .banner-card-desc { font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
   .banner-card-arrow { margin-left: auto; color: var(--ink-mute); font-size: 16px; }
+
+  /* 홈: 오늘 계획 */
+  .home-plan {
+    background: var(--bg-elev);
+    border: 1px solid var(--line-soft);
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin-top: 10px;
+    box-shadow: 0 2px 10px rgba(26, 28, 25, 0.04);
+  }
+  .home-plan-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; }
+  .home-plan-title {
+    display: flex; align-items: baseline; gap: 6px; min-width: 0;
+    border: none; background: none; padding: 6px 0; cursor: pointer;
+    font-family: var(--sans); font-size: 15.5px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em;
+  }
+  .home-plan-title b { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .home-plan-title .home-plan-none { font-size: 12.5px; font-weight: 500; color: var(--ink-mute); letter-spacing: 0; }
+  .home-plan-title .home-plan-go { font-size: 14px; font-weight: 500; color: var(--ink-mute); }
+  .home-plan .plan-rows { margin-top: 0; }
   main { padding-bottom: 96px; }
 
   .tab {
@@ -2556,6 +2576,8 @@
       <div class="banner-card-arrow">›</div>
     </div>
 
+    <div id="homePlan"></div>
+
     <div class="shelf-head">
       <div class="shelf-title">읽고 있는 작품 <b><span id="watchingCount">0</span></b></div>
       <div class="timeline-hero-desc" id="watchingDesc" style="display: none;"></div>
@@ -2732,7 +2754,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 40px; font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; font-weight: 500;">
-      v1.2.4 · 데이터는 브라우저에 저장됩니다
+      v1.3 · 데이터는 브라우저에 저장됩니다
     </div>
   </section>
 </main>
@@ -3602,6 +3624,36 @@ let saveBlocked = false;  // 저장된 데이터를 못 읽어서 덮어쓰지 �
 let loadProblemRaw = null;
 const isObj = x => x && typeof x === 'object' && !Array.isArray(x);
 
+// 작품 한 개를 지금 형식으로 맞춘다. 저장된 데이터를 불러올 때와 백업을 가져올 때 똑같이 쓴다.
+function normalizeItem(item) {
+  // 예전의 노트 한 개(item.note) → 노트 목록
+  if (typeof item.note === 'string') {
+    if (!Array.isArray(item.notes)) item.notes = [];
+    const text = item.note;
+    if (text.trim() && !item.notes.some(n => n && n.content === text)) {
+      item.notes.push({
+        id: uid(),
+        title: '기존 노트',
+        content: text,
+        createdAt: item.updatedAt || Date.now(),
+        updatedAt: item.updatedAt || Date.now()
+      });
+    }
+    delete item.note;
+  } else if (!Array.isArray(item.notes)) {
+    item.notes = [];
+  }
+  // 플랫폼: 단일 → 여러 개
+  if (item.ott === undefined) item.ott = null;
+  normalizeItemOtts(item);
+  if (item.country === undefined) item.country = null;
+  if (item.type === 'webtoon' || item.type === 'book') {
+    if (!Array.isArray(item.epWatched)) item.epWatched = [];
+    if (typeof item.epSeqMode !== 'boolean') item.epSeqMode = true; // 기본은 순차 모드
+  }
+  return item;
+}
+
 function load() {
   let raw = null;
   try {
@@ -3612,33 +3664,8 @@ function load() {
       if (data.savedAt) state.lastSavedAt = data.savedAt;
       // 깨진 항목(null 등)이 하나 있어도 나머지는 살린다
       state.items = (Array.isArray(data.items) ? data.items : []).filter(i => isObj(i) && i.id);
-      // Migrate old single-note items
-      state.items.forEach(item => {
-        if (typeof item.note === 'string' && !Array.isArray(item.notes)) {
-          if (item.note.trim()) {
-            item.notes = [{
-              id: uid(),
-              title: '기존 노트',
-              content: item.note,
-              createdAt: item.updatedAt || Date.now(),
-              updatedAt: item.updatedAt || Date.now()
-            }];
-          } else {
-            item.notes = [];
-          }
-          delete item.note;
-        } else if (!Array.isArray(item.notes)) {
-          item.notes = [];
-        }
-        // 플랫폼: 단일 → 여러 개
-        if (item.ott === undefined) item.ott = null;
-        normalizeItemOtts(item);
-        if (item.country === undefined) item.country = null;
-        if (item.type === 'webtoon' || item.type === 'book') {
-          if (!Array.isArray(item.epWatched)) item.epWatched = [];
-          if (typeof item.epSeqMode !== 'boolean') item.epSeqMode = true; // 기본은 순차 모드
-        }
-      });
+      // 예전 형식 변환 (노트 한 개 → 여러 개, 플랫폼 한 개 → 여러 개 등)
+      state.items.forEach(normalizeItem);
       state.templates = (Array.isArray(data.templates) ? data.templates : []).filter(isObj);
       if (state.templates.length === 0) {
         state.templates = DEFAULT_TEMPLATES.map(t => ({ ...t, createdAt: Date.now() }));
@@ -4348,7 +4375,9 @@ document.addEventListener('click', (e) => {
 });
 
 // ============ RENDER ============
+let renderedDay = null; // 마지막으로 화면을 그린 날짜 (날짜가 바뀌면 다시 그리기 위해)
 function render() {
+  renderedDay = today();
   updateCounts();
   renderTimeline();
   renderAll();
@@ -5413,8 +5442,8 @@ function saveContent(e) {
 
   // 회차 / 부 구성
   let parts = null;
-  let totalEp = parseInt(document.getElementById('fTotalEp').value) || 0;
-  let currentEp = parseInt(document.getElementById('fCurrentEp').value) || 0;
+  let totalEp = Math.max(0, parseInt(document.getElementById('fTotalEp').value) || 0);
+  let currentEp = Math.max(0, parseInt(document.getElementById('fCurrentEp').value) || 0);
   if (state.selectedType === 'webtoon' && document.getElementById('fUseParts').checked) {
     const r = readPartsFromForm();
     if (r.error) { showToast(r.error); return; }
@@ -5423,6 +5452,28 @@ function saveContent(e) {
     currentEp = r.currentEp;
   }
   if (totalEp > 0) currentEp = Math.min(currentEp, totalEp);
+
+  // 개별 체크 기록: 전체 화수를 넘는 것만 지운다. 전체 화수가 없으면(연재 중) 그대로 둔다.
+  let epWatched = existing && Array.isArray(existing.epWatched)
+    ? sortedUniq(existing.epWatched).filter(n => !(totalEp > 0) || n <= totalEp) : [];
+  let epSeqMode = existing && typeof existing.epSeqMode === 'boolean' ? existing.epSeqMode : true;
+  if (epSeqMode === false) {
+    // 개별 모드: 수정 화면에서 "현재 회차"를 바꿨으면 체크 기록도 거기에 맞춘다
+    const set = new Set(epWatched);
+    const base = contiguousCount(set);
+    if (currentEp !== base) {
+      if (totalEp > 0) {
+        if (currentEp > base) { for (let g = 1; g <= currentEp; g++) set.add(g); }
+        else { for (let g = currentEp + 1; g <= base; g++) set.delete(g); }
+        epWatched = sortedUniq([...set]);
+        currentEp = contiguousCount(set);
+      } else {
+        // 전체 화수가 없으면 회차 칸이 없으니 "N화까지"로 다시 정하고 순차 모드로 돌린다
+        epSeqMode = true;
+        epWatched = [];
+      }
+    }
+  }
 
   const item = {
     // 폼에 없는 필드(숨김 여부, 개별 체크 기록, 체크 모드 등)는 그대로 유지
@@ -5442,8 +5493,8 @@ function saveContent(e) {
     totalEp,
     currentEp,
     parts,
-    epWatched: existing && Array.isArray(existing.epWatched) ? existing.epWatched.filter(n => n <= totalEp) : [],
-    epSeqMode: existing && typeof existing.epSeqMode === 'boolean' ? existing.epSeqMode : true,
+    epWatched,
+    epSeqMode,
     startDate: document.getElementById('fStartDate').value,
     endDate: document.getElementById('fEndDate').value,
     rating: state.selectedRating,
@@ -5542,7 +5593,7 @@ function openDetail(id) {
   const thumbHTML = item.thumb ? `<img class="detail-thumb" src="${escapeHTML(item.thumb)}" alt="" style="margin-bottom: 12px;">` : '';
 
   // Notes list
-  const notes = (item.notes || []).sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+  const notes = [...(item.notes || [])].sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
   const bulkExportHTML = notes.length >= 2 ? `
     <div style="margin-top: 12px; padding: 12px 14px; background: var(--bg-soft); border-radius: 10px;">
       <div style="font-size: 12px; font-weight: 600; color: var(--ink-dim); margin-bottom: 4px;">전체 노트 내보내기 <span style="color: var(--ink-mute); font-weight: 500;">(${notes.length}개)</span></div>
@@ -5756,7 +5807,12 @@ function setEpMode(id, seq) {
 function updateCurrentEp(id) {
   const item = state.items.find(i => i.id === id);
   if (!item) return;
-  const newEp = parseInt(document.getElementById('quickCurEp').value) || 0;
+  const newEp = Math.max(0, parseInt(document.getElementById('quickCurEp').value) || 0);
+  if (item.epSeqMode === false && newEp !== contiguousCount(seenSet(item))) {
+    // 개별 체크 기록이 남아 있으면 "N화까지"로 다시 정한다 (기록과 현재 회차가 어긋나지 않게)
+    item.epSeqMode = true;
+    item.epWatched = [];
+  }
   item.currentEp = newEp;
   item.updatedAt = Date.now();
   save(true);
@@ -6077,14 +6133,12 @@ function saveNote() {
   const now = Date.now();
   if (!item.notes) item.notes = [];
 
-  if (state.noteEditingNoteId) {
-    const note = item.notes.find(n => n.id === state.noteEditingNoteId);
-    if (note) {
-      note.title = title;
-      note.content = content;
-      note.images = [...noteEditingImages];
-      note.updatedAt = now;
-    }
+  const note = state.noteEditingNoteId ? item.notes.find(n => n.id === state.noteEditingNoteId) : null;
+  if (note) {
+    note.title = title;
+    note.content = content;
+    note.images = [...noteEditingImages];
+    note.updatedAt = now;
   } else {
     item.notes.unshift({
       id: uid(),
@@ -7646,7 +7700,12 @@ function confirmDeleteCountry(id) {
 function renderCountryFilter() {
   const el = document.getElementById('countryFilter');
   if (!el) return;
-  const used = new Set(state.items.map(i => i.country).filter(Boolean));
+  const used = new Set(vItems().map(i => i.country).filter(Boolean));
+  if (state.countryFilter !== 'all' && !used.has(state.countryFilter)) {
+    // 고른 국가의 작품이 없어졌으면(삭제·수정·숨김) 전체로 돌린다. 안 그러면 빈 목록에 갇힌다.
+    state.countryFilter = 'all';
+    renderAll();
+  }
   if (used.size === 0) { el.innerHTML = ''; el.style.display = 'none'; return; }
   el.style.display = 'flex';
   const sorted = getCountrySorted().filter(c => used.has(c.id));
@@ -7986,10 +8045,7 @@ function importData(event) {
         confirmCallback = () => {
           const existing = new Map(state.items.map(i => [i.id, i]));
           data.items.filter(i => isObj(i) && i.id).forEach(i => {
-            if (!Array.isArray(i.notes)) i.notes = [];
-            if (i.ott === undefined) i.ott = null;
-            normalizeItemOtts(i);
-            existing.set(i.id, i);
+            existing.set(i.id, normalizeItem(i)); // 예전 형식의 백업도 불러올 때와 똑같이 변환
           });
           state.items = [...existing.values()];
           if (Array.isArray(data.plans)) {
@@ -8069,7 +8125,19 @@ document.addEventListener('visibilitychange', () => {
     const savedAt = raw ? (JSON.parse(raw).savedAt || 0) : 0;
     if (savedAt > (state.lastSavedAt || 0)) reloadFromStorage('다른 창에서 바뀐 내용을 불러왔어요');
   } catch (e) {}
+  refreshIfDayChanged();
 });
+// 앱을 켜둔 채 자정이 지났으면 "오늘" 기준 화면(오늘 계획, 날짜, n일째)을 새로 그린다
+function refreshIfDayChanged() {
+  const t = today();
+  if (!renderedDay || renderedDay === t) return;
+  // 계획 화면이 어제를 "오늘"로 보고 있었다면 오늘로 옮긴다
+  if (planAnchor === renderedDay) planAnchor = t;
+  if (planSelDay === renderedDay) planSelDay = t;
+  render();
+}
+window.addEventListener('focus', refreshIfDayChanged);
+window.addEventListener('pageshow', refreshIfDayChanged);
 
 // ============ 읽기 계획 ============
 // 계획 한 줄 = { id, date:'YYYY-MM-DD', itemId, titleSnap, typeSnap, eps:[전체 번호], text, done, carried, check }
@@ -8261,7 +8329,33 @@ function planRangeDays() {
   return Array.from({ length: 7 }, (_, i) => addDaysYmd(s, i));
 }
 
+// 홈의 "오늘 계획" 카드. 줄은 계획 탭과 같은 것(planRowHTML)을 써서 체크·수정·복사가 똑같이 동작한다.
+function renderHomePlan() {
+  const el = document.getElementById('homePlan');
+  if (!el) return;
+  const t = today();
+  const ps = plansOn(t);
+  const done = ps.filter(p => p.done).length;
+  el.innerHTML = `<div class="home-plan">
+    <div class="home-plan-head">
+      <button type="button" class="home-plan-title" onclick="goPlanToday()">
+        <span>🗓 오늘 계획</span>
+        ${ps.length ? `<b>${done}/${ps.length}</b>` : '<span class="home-plan-none">아직 없어요</span>'}
+        <span class="home-plan-go">›</span>
+      </button>
+      <button type="button" class="plan-add-btn" onclick="openPlanEditor('${t}')">+ 추가</button>
+    </div>
+    ${ps.length ? `<div class="plan-rows">${ps.map(planRowHTML).join('')}</div>` : ''}
+  </div>`;
+}
+function goPlanToday() {
+  planAnchor = today();
+  planSelDay = today();
+  goTab('plan');
+}
+
 function renderPlanView() {
+  renderHomePlan();
   const body = document.getElementById('planBody');
   if (!body) return;
   if (!planAnchor) planAnchor = today();
@@ -9162,17 +9256,9 @@ function uncheckPlan(pid) {
       }
       item.updatedAt = now;
     }
-    // 2) 넘긴 회차 되돌리기 (넘겨받은 계획을 이미 체크했다면 건드리지 않음)
-    if (c.carry) {
-      const t = findPlan(c.carry.planId);
-      if (t && !t.done && t.itemId === p.itemId) {
-        t.eps = sortedUniq(t.eps).filter(e => !(c.carry.eps || []).includes(e));
-        t.carried = c.carry.created ? false : !!c.carry.prevCarried;
-        t.updatedAt = now;
-        if (!t.eps.length && !t.text) state.plans = state.plans.filter(x => x.id !== t.id);
-      }
-    }
-    // 3) 다른 계획에서 뺀 회차·지운 계획 되살리기
+    // 2) 다른 계획에서 뺀 회차·지운 계획 되살리기
+    //    (넘긴 회차를 되돌리기 전에 먼저 한다. 순서가 반대면, 회차를 빼고 넘겨받기만 한 계획이
+    //     잠깐 비어 보여서 통째로 지워진다)
     (c.trims || []).forEach(t => {
       const x = findPlan(t.planId);
       if (t.deleted) {
@@ -9182,6 +9268,16 @@ function uncheckPlan(pid) {
         x.updatedAt = now;
       }
     });
+    // 3) 넘긴 회차 되돌리기 (넘겨받은 계획을 이미 체크했다면 건드리지 않음)
+    if (c.carry) {
+      const t = findPlan(c.carry.planId);
+      if (t && !t.done && t.itemId === p.itemId) {
+        t.eps = sortedUniq(t.eps).filter(e => !(c.carry.eps || []).includes(e));
+        t.carried = c.carry.created ? false : !!c.carry.prevCarried;
+        t.updatedAt = now;
+        if (!t.eps.length && !t.text) state.plans = state.plans.filter(x => x.id !== t.id);
+      }
+    }
     p.eps = sortedUniq(c.origEps);
   }
   p.done = false;
