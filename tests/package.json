@@ -1,0 +1,13 @@
+{
+  "name": "toonbook-tests",
+  "private": true,
+  "description": "Toon & Book Archive 점검 스크립트 (앱에는 포함되지 않음)",
+  "scripts": {
+    "test": "./run.sh",
+    "test:full": "./run.sh full",
+    "test:browser": "./run.sh browser"
+  },
+  "devDependencies": {
+    "jsdom": "31.0.0"
+  }
+}
